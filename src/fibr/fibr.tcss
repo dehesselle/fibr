@@ -1,0 +1,28 @@
+Panel {
+    border: gray;
+}
+
+Rule {
+    color: red;
+    margin: 0;
+}
+
+.footer-key--description {
+    padding: 0;
+    width: 6;
+}
+
+FooterKey {
+    width: 7;
+}
+
+/*
+Footer {
+    FooterKey {
+
+        .footer-key--description {
+            padding: 0;
+        }
+    }
+}
+    */

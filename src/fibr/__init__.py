@@ -1,2 +1,6 @@
+from .fibr import FibrApp
+
+
 def main() -> None:
-    print("Hello from fibr!")
+    app = FibrApp()
+    app.run()

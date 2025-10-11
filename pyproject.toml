@@ -3,11 +3,9 @@ name = "fibr"
 dynamic = ["version"]
 description = "Add your description here"
 readme = "README.md"
-authors = [
-    { name = "René de Hesselle", email = "dehesselle@web.de" }
-]
+authors = [{ name = "René de Hesselle", email = "dehesselle@web.de" }]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["textual~=6.3"]
 
 [project.scripts]
 fibr = "fibr:main"

@@ -1,12 +1,3 @@
-Panel {
-    border: gray;
-}
-
-Rule {
-    color: red;
-    margin: 0;
-}
-
 .footer-key--description {
     padding: 0;
     width: 6;

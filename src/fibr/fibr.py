@@ -5,7 +5,7 @@ from textual.widgets import Footer
 from textual.binding import Binding
 from textual import events
 
-from .panel import Panel
+from fibr.panel import Panel
 
 
 class FibrApp(App):
@@ -28,7 +28,7 @@ class FibrApp(App):
         Binding("f9", "pulldown_menu", " ", key_display=" "),
         Binding("f10", "quit", "Quit", key_display="10"),
     ]
-    CSS_PATH = "fibr.tcss"
+    CSS_PATH = ["fibr.tcss", "panel/panel.tcss"]
 
     def action_help(self) -> None:
         pass

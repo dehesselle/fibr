@@ -1,0 +1,8 @@
+Panel {
+    border: gray;
+}
+
+Rule {
+    color: red;
+    margin: 0;
+}

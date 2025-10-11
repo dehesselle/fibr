@@ -1,23 +1,19 @@
 from textual.widgets import DataTable, Rule, Input
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
-from textual.binding import Binding
 
 from textual import on
 
-from .fs import FsDb, NotFoundException
+from ..fs import FsDb, NotFoundException
+
+from .searchbar import SearchBar
 
 from pathlib import Path
 
 
-class MyInput(Input):
-    BINDINGS = [Binding("escape", "disable")]
-
-    def action_disable(self):
-        self.disabled = True
-
-
 class Panel(VerticalGroup):
+    CSS_PATH = "panel.tcss"
+
     def __init__(
         self,
         *children,
@@ -42,9 +38,9 @@ class Panel(VerticalGroup):
     def compose(self) -> ComposeResult:
         yield DataTable(id=self.id)
         yield Rule()
-        yield MyInput("something here", compact=True, disabled=True)
+        yield SearchBar("something here", compact=True, disabled=True)
 
-    @on(MyInput.Changed)
+    @on(SearchBar.Changed)
     def search_and_select(self, event: Input.Changed):
         if not event.input.disabled:
             self.select_row(event.value)

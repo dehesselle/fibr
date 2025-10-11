@@ -19,7 +19,14 @@ class MyInput(Input):
 
 class Panel(VerticalGroup):
     def __init__(
-        self, *children, name=None, id=None, classes=None, disabled=False, markup=True
+        self,
+        *children,
+        name=None,
+        id=None,
+        classes=None,
+        disabled=False,
+        markup=True,
+        starting_dir: Path,
     ):
         super().__init__(
             *children,
@@ -29,6 +36,7 @@ class Panel(VerticalGroup):
             disabled=disabled,
             markup=markup,
         )
+        self.starting_dir = starting_dir
         self.fsdb = FsDb()
 
     def compose(self) -> ComposeResult:
@@ -47,7 +55,7 @@ class Panel(VerticalGroup):
         table.add_column("Size", width=7)
         table.add_column("Modify time", width=12)
 
-        for row in self.fsdb.get(Path("C:/Users/Rene/Developer/fibr")):
+        for row in self.fsdb.get(self.starting_dir):
             table.add_row(*row[1:], key=str(row[0]))
             table.add_row(row[0])
 
@@ -61,9 +69,7 @@ class Panel(VerticalGroup):
         table = self.query_one(DataTable)
         try:
             table.move_cursor(
-                row=table.get_row_index(
-                    self.fsdb.get_rowid(Path("C:/Users/Rene/Developer/fibr"), name)
-                )
+                row=table.get_row_index(self.fsdb.get_rowid(self.starting_dir, name))
             )
         except NotFoundException as e:
             pass

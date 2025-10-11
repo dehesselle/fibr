@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from textual.app import App, ComposeResult
 from textual.widgets import Footer
 from textual.binding import Binding
@@ -59,10 +61,13 @@ class FibrApp(App):
         pass
 
     def compose(self) -> ComposeResult:
-        yield Panel(id="left")
+        yield Panel(id="left", starting_dir=self.starting_dir)
         yield Footer(compact=True, show_command_palette=False)
 
     def on_key(self, event: events.Key):
         if event.character:
             panel = self.query_one("#left", Panel)
             panel.find_as_you_type()
+
+    def set_starting_directory(self, starting_dir: Path):
+        self.starting_dir = starting_dir

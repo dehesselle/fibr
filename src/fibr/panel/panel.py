@@ -4,7 +4,7 @@ from textual.containers import VerticalGroup
 
 from textual import on
 
-from ..fs import FsDb, NotFoundException
+from fibr.filesystem import Filesystem, NotFoundException
 
 from .searchbar import SearchBar
 
@@ -33,7 +33,7 @@ class Panel(VerticalGroup):
             markup=markup,
         )
         self.starting_dir = starting_dir
-        self.fsdb = FsDb()
+        self.fs = Filesystem()
 
     def compose(self) -> ComposeResult:
         yield DataTable(id=self.id)
@@ -51,12 +51,8 @@ class Panel(VerticalGroup):
         table.add_column("Size", width=7)
         table.add_column("Modify time", width=12)
 
-        for row in self.fsdb.get(self.starting_dir):
+        for row in self.fs.get(self.starting_dir):
             table.add_row(*row[1:], key=str(row[0]))
-            table.add_row(row[0])
-
-        table.add_row("aaa", "bbb", "ccc")
-        table.add_row("aaa", "bbb", "ccc")
 
         table.cursor_type = "row"
         table.cell_padding = 0
@@ -65,7 +61,7 @@ class Panel(VerticalGroup):
         table = self.query_one(DataTable)
         try:
             table.move_cursor(
-                row=table.get_row_index(self.fsdb.get_rowid(self.starting_dir, name))
+                row=table.get_row_index(self.fs.get_rowid(self.starting_dir, name))
             )
         except NotFoundException as e:
             pass

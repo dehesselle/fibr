@@ -28,7 +28,14 @@ class FibrApp(App):
         Binding("f9", "pulldown_menu", " ", key_display=" "),
         Binding("f10", "quit", "Quit", key_display="10"),
     ]
+    COMMAND_PALETTE_BINDING = "ctrl+y"
     CSS_PATH = ["fibr.tcss", "panel/panel.tcss"]
+
+    def __init__(
+        self, driver_class=None, css_path=None, watch_css=False, ansi_color=False
+    ):
+        super().__init__(driver_class, css_path, watch_css, ansi_color)
+        self.starting_directory = Path.cwd()
 
     def action_help(self) -> None:
         pass
@@ -61,13 +68,10 @@ class FibrApp(App):
         pass
 
     def compose(self) -> ComposeResult:
-        yield Panel(id="left", starting_dir=self.starting_dir)
+        yield Panel(id="left", directory=self.starting_directory)
         yield Footer(compact=True, show_command_palette=False)
 
     def on_key(self, event: events.Key):
         if event.character:
             panel = self.query_one("#left", Panel)
             panel.find_as_you_type()
-
-    def set_starting_directory(self, starting_dir: Path):
-        self.starting_dir = starting_dir

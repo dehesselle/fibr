@@ -2,6 +2,7 @@ from pathlib import Path
 import sqlite3
 from enum import IntEnum
 from importlib.resources import read_text
+from typing import List
 import time
 
 SQL_CREATE_TABLE = read_text("fibr.filesystem", "create_table.sql")
@@ -9,10 +10,6 @@ SQL_INSERT_FILES = read_text("fibr.filesystem", "insert_files.sql")
 SQL_GET_FILES_IN_DIR = read_text("fibr.filesystem", "get_files_in_dir.sql")
 SQL_DELETE_FILES = read_text("fibr.filesystem", "delete_files.sql")
 SQL_SEARCH_FILENAME_LIKE = read_text("fibr.filesystem", "search_filename_like.sql")
-
-
-class NotFoundException(Exception):
-    """Exception raised for search not yielding any result."""
 
 
 class FileType(IntEnum):
@@ -77,13 +74,14 @@ class Filesystem:
         rows = self._db_select(path)
         return rows
 
-    def get_rowid(self, path: Path, name: str):
+    def get_rowids(self, path: Path, name: str) -> List[int]:
         cursor = self.db.execute(
             SQL_SEARCH_FILENAME_LIKE,
             [path.as_posix(), name + "%"],
         )
-        rows = cursor.fetchone()
-        if rows:
-            return str(rows[0])
+        rows = cursor.fetchall()
+
+        if len(rows):
+            return [row[0] for row in rows]
         else:
-            raise NotFoundException()
+            return list()

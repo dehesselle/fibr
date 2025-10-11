@@ -22,5 +22,5 @@ def main() -> None:
     args = parser.parse_args()
 
     app = FibrApp()
-    app.set_starting_directory(args.starting_dir)
+    app.starting_directory = args.starting_dir
     app.run()

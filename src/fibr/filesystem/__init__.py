@@ -1,1 +1,1 @@
-from .filesystem import Filesystem, NotFoundException
+from .filesystem import Filesystem

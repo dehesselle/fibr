@@ -93,11 +93,12 @@ class Panel(VerticalGroup):
         table.cursor_type = "row"
         table.cell_padding = 0
 
-    def find_as_you_type(self):
-        input = self.query_one(Input)
-        input.disabled = False
-        input.clear()
-        input.focus()
+    def activate_search(self, character: str):
+        search_bar = self.query_one(SearchBar)
+        if search_bar.disabled:
+            search_bar.disabled = False
+            search_bar.value = character
+            search_bar.focus()
 
     def on_search_bar_next(self, message: SearchBar.Next) -> None:
         rowid = self.search.get_next()

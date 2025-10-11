@@ -24,3 +24,7 @@ class SearchBar(Input):
 
     def action_previous(self):
         self.post_message(self.Previous())
+
+    def on_mount(self):
+        self.select_on_focus = False
+        return super().on_mount()

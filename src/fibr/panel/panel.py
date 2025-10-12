@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from datetime import datetime
 
 from textual.widgets import Rule
 from textual.widgets.data_table import RowKey
@@ -13,6 +14,14 @@ from .filelist import FileList
 
 
 log = logging.getLogger("panel")
+
+
+def epoch_to_str(epoch: int) -> str:
+    dt = datetime.fromtimestamp(epoch)
+    if dt.year == datetime.now().year:
+        return dt.strftime("%d. %b %H:%M")
+    else:
+        return dt.strftime("%d. %b %Y")
 
 
 class Panel(Vertical):
@@ -50,7 +59,9 @@ class Panel(Vertical):
         table = self.query_one(FileList)
         table.clear()
         for row in self.fs.get(self.directory, use_cache=use_cache):
-            table.add_row(*row[1:], key=str(row[0]))
+            table.add_row(
+                row[1], str(row[2]).rjust(7), epoch_to_str(row[3]), key=str(row[0])
+            )
 
     def start_search(self, character: str):
         table = self.query_one(FileList)

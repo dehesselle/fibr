@@ -18,7 +18,7 @@ class FileList(DataTable):
     def on_mount(self):
         self.add_column("Name", width=20, key="name")
         self.add_column("Size", width=7, key="size")
-        self.add_column("Modify time", width=12, key="modify")
+        self.add_column("Modify time", width=13, key="modify")
         self.cursor_type = "row"
         self.cell_padding = 1
         super().on_mount()

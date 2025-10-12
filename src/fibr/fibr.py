@@ -1,3 +1,5 @@
+from enum import StrEnum
+import logging
 from pathlib import Path
 
 from textual.app import App, ComposeResult
@@ -6,6 +8,17 @@ from textual.binding import Binding
 from textual import events
 
 from fibr.panel import Panel
+
+log = logging.getLogger("main")
+
+
+def to_selector(id: str) -> str:
+    return "#" + id
+
+
+class PanelID(StrEnum):
+    LEFT = "left"
+    RIGHT = "right"
 
 
 class FibrApp(App):
@@ -27,6 +40,7 @@ class FibrApp(App):
         Binding("f8", "delete", "Delete", key_display="8"),
         Binding("f9", "pulldown_menu", " ", key_display=" "),
         Binding("f10", "quit", "Quit", key_display="10"),
+        Binding("ctrl+r", "reload_panel", show=False),
     ]
     COMMAND_PALETTE_BINDING = "ctrl+y"
     CSS_PATH = ["fibr.tcss", "panel/panel.tcss"]
@@ -36,6 +50,7 @@ class FibrApp(App):
     ):
         super().__init__(driver_class, css_path, watch_css, ansi_color)
         self.starting_directory = Path.cwd()
+        self.active_panel = PanelID.LEFT
 
     def action_help(self) -> None:
         pass
@@ -67,11 +82,15 @@ class FibrApp(App):
     def action_pulldown_menu(self) -> None:
         pass
 
+    def action_reload_panel(self) -> None:
+        panel = self.query_one(to_selector(self.active_panel), Panel)
+        panel.reload()
+
     def compose(self) -> ComposeResult:
-        yield Panel(id="left", directory=self.starting_directory)
+        yield Panel(id=PanelID.LEFT, directory=self.starting_directory)
         yield Footer(compact=True, show_command_palette=False)
 
     def on_key(self, event: events.Key):
         if event.character:
-            panel = self.query_one("#left", Panel)
+            panel = self.query_one(to_selector(self.active_panel), Panel)
             panel.start_search(event.character)

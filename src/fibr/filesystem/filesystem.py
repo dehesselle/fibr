@@ -66,8 +66,8 @@ class Filesystem:
                 "_row_ts": epoch_time,
             }
 
-    def get(self, path: Path, refresh: bool = False):
-        if not refresh:
+    def get(self, path: Path, reload: bool = False):
+        if not reload:
             rows = self._db_select(path)
             if len(rows):
                 return rows

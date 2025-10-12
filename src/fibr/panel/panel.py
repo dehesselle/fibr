@@ -44,12 +44,15 @@ class Panel(VerticalGroup):
         table.add_column("Name", width=24)
         table.add_column("Size", width=7)
         table.add_column("Modify time", width=12)
-
-        for row in self.fs.get(self.directory):
-            table.add_row(*row[1:], key=str(row[0]))
-
         table.cursor_type = "row"
         table.cell_padding = 0
+        self.reload()
+
+    def reload(self):
+        table = self.query_one(DataTable)
+        table.clear()
+        for row in self.fs.get(self.directory, reload=True):
+            table.add_row(*row[1:], key=str(row[0]))
 
     def start_search(self, character: str):
         table = self.query_one(DataTable)

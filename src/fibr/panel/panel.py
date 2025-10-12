@@ -63,7 +63,7 @@ class Panel(Vertical):
             search_bar.focus()
 
     @on(SearchBar.Changed)
-    def _move_cursor_to_first_matchsearch_and_select(self, event: SearchBar.Changed):
+    def _move_cursor_to_first_match(self, event: SearchBar.Changed):
         if not event.input.disabled:
             rowid = self.fs.search.next(self.directory.as_posix(), event.value)
             table = self.query_one(FileList)

@@ -41,9 +41,11 @@ def to_filetype(file: Path) -> FileType:
 class Filesystem:
     def _db_create_table(self):
         _ = self.db.execute(SQL_CREATE_TABLE)
+        _ = self.db.commit()
 
     def _db_insert(self, rows):
         _ = self.db.executemany(SQL_INSERT_FILES, rows)
+        _ = self.db.commit()
 
     def _db_select(self, path: Path):
         cursor = self.db.execute(

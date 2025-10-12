@@ -1,17 +1,19 @@
+import logging
 from pathlib import Path
 
-from textual.widgets import DataTable, Rule, Input
+from textual.widgets import DataTable, Rule
+from textual.widgets.data_table import RowKey
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
-from textual import on
+from textual import events, on
 
 from fibr.filesystem import Filesystem
 from .searchbar import SearchBar
 
+log = logging.getLogger("panel")
+
 
 class Panel(VerticalGroup):
-    CSS_PATH = "panel.tcss"
-
     def __init__(
         self,
         *children,
@@ -37,11 +39,11 @@ class Panel(VerticalGroup):
     def compose(self) -> ComposeResult:
         yield DataTable(id=self.id)
         yield Rule()
-        yield SearchBar("something here", compact=True, disabled=True)
+        yield SearchBar()
 
     def on_mount(self) -> None:
         table = self.query_one(DataTable)
-        table.add_column("Name", width=24)
+        table.add_column("Name", width=24, key="name")
         table.add_column("Size", width=7)
         table.add_column("Modify time", width=12)
         table.cursor_type = "row"
@@ -59,6 +61,7 @@ class Panel(VerticalGroup):
         self.cursor_row_before_search = table.cursor_row
         search_bar = self.query_one(SearchBar)
         if search_bar.disabled:
+            search_bar.can_focus = True
             search_bar.disabled = False
             search_bar.value = character
             search_bar.focus()
@@ -89,3 +92,26 @@ class Panel(VerticalGroup):
     def cancel_search(self):
         table = self.query_one(DataTable)
         table.move_cursor(row=self.cursor_row_before_search)
+
+    def on_key(self, event: events.Key):
+        if event.character and event.character.isprintable():
+            self.start_search(event.character)
+
+    @on(DataTable.RowHighlighted)
+    def _show_highlighted_row_in_search_bar(self, event: DataTable.RowHighlighted):
+        self.show_filename_in_search_bar(event.row_key)
+
+    def show_filename_in_search_bar(self, row_key: RowKey | str):
+        search_bar = self.query_one(SearchBar)
+        # Only use the search bar as an info bar if it's not in use.
+        if search_bar.disabled:
+            table = self.query_one(DataTable)
+            if isinstance(row_key, RowKey):
+                search_bar.value = table.get_cell(row_key, "name")
+            else:
+                search_bar.value = row_key
+
+    @on(SearchBar.Submitted)
+    def _show_submitted_search_in_search_bar(self, event: SearchBar.Submitted):
+        table = self.query_one(DataTable)
+        self.show_filename_in_search_bar(table.get_cell_at((table.cursor_row, 0)))

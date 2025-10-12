@@ -14,22 +14,28 @@ class Search:
         self.results = list()
         self.index = -1
 
-    def _db_search_files(self, directory: str, filename: str) -> List[int]:
+    def _db_search_files(
+        self, directory: str, filename: str, is_word: bool
+    ) -> List[int]:
+        if not is_word:
+            filename += "%"
         cursor = self.db.execute(
             SQL_SEARCH_FILENAME_LIKE,
-            [directory, filename + "%"],
+            [directory, filename],
         )
         rows = cursor.fetchall()
+        log.debug(f"found {len(rows)} rows")
 
         if len(rows):
-            log.debug(f"found {len(rows)} rows")
             return [row[0] for row in rows]
         else:
             return list()
 
-    def next(self, directory: str = None, filename: str = None) -> int:
+    def next(
+        self, directory: str = None, filename: str = None, is_word: bool = False
+    ) -> int:
         if directory:
-            self.results = self._db_search_files(directory, filename)
+            self.results = self._db_search_files(directory, filename, is_word)
             self.index = -1
 
         if len(self.results):
@@ -41,9 +47,11 @@ class Search:
         else:
             return 0
 
-    def previous(self, directory: str = None, filename: str = None) -> int:
+    def previous(
+        self, directory: str = None, filename: str = None, is_word: bool = False
+    ) -> int:
         if directory:
-            self.results = self._db_search_files(directory, filename)
+            self.results = self._db_search_files(directory, filename, is_word)
             self.index = -1
 
         if len(self.results):

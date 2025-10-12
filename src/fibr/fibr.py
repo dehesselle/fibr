@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 from textual.app import App, ComposeResult
+from textual.containers import HorizontalGroup
 from textual.widgets import Footer
 from textual.binding import Binding
 from textual import events
@@ -87,10 +88,8 @@ class FibrApp(App):
         panel.reload()
 
     def compose(self) -> ComposeResult:
-        yield Panel(id=PanelID.LEFT, directory=self.starting_directory)
+        yield HorizontalGroup(
+            Panel(id=PanelID.LEFT, directory=self.starting_directory),
+            Panel(id=PanelID.RIGHT, directory=self.starting_directory),
+        )
         yield Footer(compact=True, show_command_palette=False)
-
-    def on_key(self, event: events.Key):
-        if event.character:
-            panel = self.query_one(to_selector(self.active_panel), Panel)
-            panel.start_search(event.character)

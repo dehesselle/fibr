@@ -12,3 +12,6 @@ WHERE
         SELECT MAX(f2._row_ts) FROM files AS f2
         WHERE f2.d_name = f1.d_name
     )
+ORDER BY
+    d_name,
+    f_name

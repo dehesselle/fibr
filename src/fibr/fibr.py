@@ -50,7 +50,7 @@ class FibrApp(App):
         self, driver_class=None, css_path=None, watch_css=False, ansi_color=False
     ):
         super().__init__(driver_class, css_path, watch_css, ansi_color)
-        self.starting_directory = Path.cwd()
+        self.starting_directory = Path.cwd().resolve()
         self.active_panel = PanelID.LEFT
 
     def action_help(self) -> None:

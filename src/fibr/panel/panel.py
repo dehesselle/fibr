@@ -95,9 +95,9 @@ class Panel(Vertical):
 
     @on(FileList.RowHighlighted)
     def _show_highlighted_row_in_search_bar(self, event: FileList.RowHighlighted):
-        self.show_filename_in_search_bar(event.row_key)
+        self.show_name_in_search_bar(event.row_key)
 
-    def show_filename_in_search_bar(self, row_key: RowKey | str):
+    def show_name_in_search_bar(self, row_key: RowKey | str):
         search_bar = self.query_one(SearchBar)
         # Only use the search bar as an info bar if it's not in use.
         if search_bar.disabled:
@@ -108,6 +108,20 @@ class Panel(Vertical):
                 search_bar.value = row_key
 
     @on(SearchBar.Submitted)
-    def _show_submitted_search_in_search_bar(self, event: SearchBar.Submitted):
+    def _process_search_result(self, event: SearchBar.Submitted):
         table = self.query_one(FileList)
-        self.show_filename_in_search_bar(table.get_cell_at((table.cursor_row, 0)))
+        name = table.get_cell_at((table.cursor_row, 0))
+        self.show_name_in_search_bar(name)
+
+        # if it's a directory: enter the directory
+        if (directory := self.directory / name).is_dir():
+            self.directory = directory
+            self.reload()
+
+    @on(FileList.Executed)
+    def _change_directory(self, event: FileList.Executed):
+        target = self.directory / event.value
+        log.debug(f"target: {target}")
+        if target.is_dir():
+            self.directory = target.resolve()
+            self.reload()

@@ -1,7 +1,18 @@
+from textual.binding import Binding
+from textual.message import Message
 from textual.widgets import DataTable
 
 
 class FileList(DataTable):
+    BINDINGS = [
+        Binding("enter", "execute"),
+    ]
+
+    class Executed(Message):
+        def __init__(self, value: str):
+            self.value = value
+            super().__init__()
+
     def on_mount(self):
         self.add_column("Name", width=20, key="name")
         self.add_column("Size", width=7, key="size")
@@ -20,3 +31,7 @@ class FileList(DataTable):
         super()._on_resize(_)
         self.columns["name"].width = self.dynamic_name_column_width
         self.refresh()
+
+    def action_execute(self):
+        name = self.get_cell_at((self.cursor_row, 0))
+        self.post_message(self.Executed(name))

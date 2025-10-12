@@ -49,6 +49,6 @@ def main() -> None:
 
     log.info("begin")
     app = FibrApp()
-    app.starting_directory = args.starting_dir
+    app.starting_directory = args.starting_dir.resolve()
     app.run()
     log.info("end")

@@ -24,22 +24,22 @@ class PanelID(StrEnum):
 
 class FibrApp(App):
     BINDINGS = [
-        Binding("f1", "help", "Help", key_display="1"),
-        Binding("f2", "menu", " ", key_display=" "),
-        Binding("f3", "view", "View", key_display="3"),
-        Binding("f4", "edit", "Edit", key_display="4"),
-        Binding("f5", "copy", "Copy", key_display="5"),
-        Binding(
-            "f6",
-            "move",
-            "RenMov",
-            key_display="6",
-            tooltip="      F6 move\nShift+F6 rename",
-        ),
-        Binding("shift+f6", "rename", "RenMov", show=False),
-        Binding("f7", "mkdir", "Mkdir", key_display="7"),
-        Binding("f8", "delete", "Delete", key_display="8"),
-        Binding("f9", "pulldown_menu", " ", key_display=" "),
+        # Binding("f1", "help", "Help", key_display="1"),
+        # Binding("f2", "menu", "Menu", key_display="2"),
+        # Binding("f3", "view", "View", key_display="3"),
+        # Binding("f4", "edit", "Edit", key_display="4"),
+        # Binding("f5", "copy", "Copy", key_display="5"),
+        # Binding(
+        #     "f6",
+        #     "move",
+        #     "RenMov",
+        #     key_display="6",
+        #     tooltip="      F6 move\nShift+F6 rename",
+        # ),
+        # Binding("shift+f6", "rename", "RenMov", show=False),
+        # Binding("f7", "mkdir", "Mkdir", key_display="7"),
+        # Binding("f8", "delete", "Delete", key_display="8"),
+        # Binding("f9", "pulldown_menu", "PullDn ", key_display="9"),
         Binding("f10", "quit", "Quit", key_display="10"),
         Binding("ctrl+r", "reload_panel", show=False),
     ]

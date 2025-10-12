@@ -74,4 +74,4 @@ class FibrApp(App):
     def on_key(self, event: events.Key):
         if event.character:
             panel = self.query_one("#left", Panel)
-            panel.activate_search(event.character)
+            panel.start_search(event.character)

@@ -1,11 +1,12 @@
 from textual.widgets import Input
 from textual.binding import Binding
 from textual.message import Message
+from textual import on
 
 
 class SearchBar(Input):
     BINDINGS = [
-        Binding("escape", "disable"),
+        Binding("escape", "cancel"),
         Binding("ctrl+n", "next"),
         Binding("ctrl+p", "previous"),
     ]
@@ -16,7 +17,15 @@ class SearchBar(Input):
     class Previous(Message):
         pass
 
-    def action_disable(self):
+    class Cancelled(Message):
+        pass
+
+    def action_cancel(self):
+        self.disabled = True
+        self.post_message(self.Cancelled())
+
+    @on(Input.Submitted)
+    def _disable(self):
         self.disabled = True
 
     def action_next(self):

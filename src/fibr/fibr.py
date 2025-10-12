@@ -43,7 +43,6 @@ class FibrApp(App):
         Binding("f10", "quit", "Quit", key_display="10"),
         Binding("ctrl+r", "reload_panel", show=False),
     ]
-    COMMAND_PALETTE_BINDING = "ctrl+y"
     CSS_PATH = ["fibr.tcss", "panel/panel.tcss"]
 
     def __init__(

@@ -1,45 +1,12 @@
+from pathlib import Path
+
 from textual.widgets import DataTable, Rule, Input
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
-
 from textual import on
 
 from fibr.filesystem import Filesystem
-
 from .searchbar import SearchBar
-
-from pathlib import Path
-
-
-class Search:
-    def __init__(self, filesystem: Filesystem):
-        self.fs = filesystem
-        self.results = list()
-        self.index = -1
-
-    def search_files(self, directory: Path, filename: str):
-        self.results = self.fs.get_rowids(directory, filename)
-        self.index = -1
-
-    def get_next(self) -> int:
-        if len(self.results):
-            self.index += 1
-            if not self.index < len(self.results):
-                self.index = 0
-
-            return self.results[self.index]
-        else:
-            return 0
-
-    def get_previous(self) -> int:
-        if len(self.results):
-            self.index -= 1
-            if not self.index > -1:
-                self.index = len(self.results) - 1
-
-            return self.results[self.index]
-        else:
-            return 0
 
 
 class Panel(VerticalGroup):
@@ -65,7 +32,6 @@ class Panel(VerticalGroup):
         )
         self.directory = directory
         self.fs = Filesystem()
-        self.search = Search(self.fs)
 
     def compose(self) -> ComposeResult:
         yield DataTable(id=self.id)
@@ -75,11 +41,12 @@ class Panel(VerticalGroup):
     @on(SearchBar.Changed)
     def search_and_select(self, event: Input.Changed):
         if not event.input.disabled:
-            self.search.search_files(self.directory, event.value)
-            rowid = self.search.get_next()
+            rowid = self.fs.search.next(self.directory.as_posix(), event.value)
+            table = self.query_one(DataTable)
             if rowid:
-                table = self.query_one(DataTable)
                 table.move_cursor(row=table.get_row_index(str(rowid)))
+            else:
+                table.add_row(("foo", "bar", "baz"))
 
     def on_mount(self) -> None:
         table = self.query_one(DataTable)
@@ -101,13 +68,13 @@ class Panel(VerticalGroup):
             search_bar.focus()
 
     def on_search_bar_next(self, message: SearchBar.Next) -> None:
-        rowid = self.search.get_next()
+        rowid = self.fs.search.next()
         if rowid:
             table = self.query_one(DataTable)
             table.move_cursor(row=table.get_row_index(str(rowid)))
 
     def on_search_bar_previous(self, message: SearchBar.Next) -> None:
-        rowid = self.search.get_previous()
+        rowid = self.fs.search.previous()
         if rowid:
             table = self.query_one(DataTable)
             table.move_cursor(row=table.get_row_index(str(rowid)))

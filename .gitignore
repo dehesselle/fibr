@@ -11,3 +11,4 @@ src/fibr/_version.py
 .venv
 
 # custom
+*.log

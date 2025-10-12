@@ -2,8 +2,9 @@ from pathlib import Path
 import sqlite3
 from enum import IntEnum
 from importlib.resources import read_text
-from typing import List
 import time
+
+from .search import Search
 
 SQL_CREATE_TABLE = read_text("fibr.filesystem", "create_table.sql")
 SQL_INSERT_FILES = read_text("fibr.filesystem", "insert_files.sql")
@@ -51,6 +52,7 @@ class Filesystem:
     def __init__(self):
         self.db = sqlite3.connect(":memory:")
         self._db_create_table()
+        self.search = Search(self.db)
 
     def get_files(self, path: Path):
         epoch_time = int(time.time())
@@ -73,15 +75,3 @@ class Filesystem:
         self._db_insert(self.get_files(path))
         rows = self._db_select(path)
         return rows
-
-    def get_rowids(self, path: Path, name: str) -> List[int]:
-        cursor = self.db.execute(
-            SQL_SEARCH_FILENAME_LIKE,
-            [path.as_posix(), name + "%"],
-        )
-        rows = cursor.fetchall()
-
-        if len(rows):
-            return [row[0] for row in rows]
-        else:
-            return list()

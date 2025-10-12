@@ -6,6 +6,8 @@ from textual.widgets import DataTable
 class FileList(DataTable):
     BINDINGS = [
         Binding("enter", "execute"),
+        Binding("home", "scroll_top"),
+        Binding("end", "scroll_bottom"),
     ]
 
     class Executed(Message):
@@ -24,7 +26,7 @@ class FileList(DataTable):
     @property
     def dynamic_name_column_width(self) -> int:
         return self.size.width - (
-            self.columns["size"].width + self.columns["modify"].width + 5
+            self.columns["size"].width + self.columns["modify"].width + 6
         )
 
     def _on_resize(self, _):

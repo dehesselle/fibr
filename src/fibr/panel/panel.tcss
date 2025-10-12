@@ -3,10 +3,11 @@ Panel {
 }
 
 Rule {
-    color: red;
     margin: 0;
+    color: gray;
 }
 
 DataTable {
     height: 100fr;
+    scrollbar-size: 1 1
 }

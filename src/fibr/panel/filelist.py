@@ -26,7 +26,7 @@ class FileList(DataTable):
     @property
     def dynamic_name_column_width(self) -> int:
         return self.size.width - (
-            self.columns["size"].width + self.columns["modify"].width + 6
+            self.columns["size"].width + self.columns["modify"].width + 7
         )
 
     def _on_resize(self, _):

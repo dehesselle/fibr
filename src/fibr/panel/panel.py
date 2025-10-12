@@ -24,6 +24,22 @@ def epoch_to_str(epoch: int) -> str:
         return dt.strftime("%d. %b %Y")
 
 
+def bytes_to_str(bytes: int) -> str:
+    if bytes > 9999999:
+        kb = int(bytes / 1024)
+        if kb > 999999:
+            mb = int(kb / 1024)
+            if mb > 9999999:
+                gb = int(mb / 1024)
+                return (str(gb) + "G").rjust(7)
+            else:
+                return (str(mb) + "M").rjust(7)
+        else:
+            return (str(kb) + "K").rjust(7)
+    else:
+        return str(bytes).rjust(7)
+
+
 class Panel(Vertical):
     def __init__(
         self,
@@ -60,7 +76,7 @@ class Panel(Vertical):
         table.clear()
         for row in self.fs.get(self.directory, use_cache=use_cache):
             table.add_row(
-                row[1], str(row[2]).rjust(7), epoch_to_str(row[3]), key=str(row[0])
+                row[1], bytes_to_str(row[2]), epoch_to_str(row[3]), key=str(row[0])
             )
 
     def start_search(self, character: str):

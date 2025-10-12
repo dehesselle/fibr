@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 
 from textual.app import App, ComposeResult
-from textual.containers import HorizontalGroup
+from textual.containers import Horizontal
 from textual.widgets import Footer
 from textual.binding import Binding
 from textual import events
@@ -88,7 +88,7 @@ class FibrApp(App):
         panel.reload()
 
     def compose(self) -> ComposeResult:
-        yield HorizontalGroup(
+        yield Horizontal(
             Panel(id=PanelID.LEFT, directory=self.starting_directory),
             Panel(id=PanelID.RIGHT, directory=self.starting_directory),
         )

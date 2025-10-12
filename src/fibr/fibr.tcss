@@ -6,14 +6,3 @@
 FooterKey {
     width: 7;
 }
-
-/*
-Footer {
-    FooterKey {
-
-        .footer-key--description {
-            padding: 0;
-        }
-    }
-}
-    */

@@ -4,7 +4,7 @@ from pathlib import Path
 from textual.widgets import DataTable, Rule
 from textual.widgets.data_table import RowKey
 from textual.app import ComposeResult
-from textual.containers import VerticalGroup
+from textual.containers import Vertical
 from textual import events, on
 
 from fibr.filesystem import Filesystem
@@ -13,7 +13,7 @@ from .searchbar import SearchBar
 log = logging.getLogger("panel")
 
 
-class Panel(VerticalGroup):
+class Panel(Vertical):
     def __init__(
         self,
         *children,

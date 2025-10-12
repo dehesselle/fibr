@@ -6,3 +6,7 @@ Rule {
     color: red;
     margin: 0;
 }
+
+DataTable {
+    height: 100fr;
+}

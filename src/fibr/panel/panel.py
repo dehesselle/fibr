@@ -46,10 +46,10 @@ class Panel(Vertical):
     def on_mount(self) -> None:
         self.reload()
 
-    def reload(self):
+    def reload(self, use_cache: bool = True):
         table = self.query_one(FileList)
         table.clear()
-        for row in self.fs.get(self.directory, reload=True):
+        for row in self.fs.get(self.directory, use_cache=use_cache):
             table.add_row(*row[1:], key=str(row[0]))
 
     def start_search(self, character: str):

@@ -85,7 +85,7 @@ class FibrApp(App):
 
     def action_reload_panel(self) -> None:
         panel = self.query_one(to_selector(self.active_panel), Panel)
-        panel.reload()
+        panel.reload(use_cache=False)
 
     def compose(self) -> ComposeResult:
         yield Horizontal(

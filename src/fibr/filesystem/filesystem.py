@@ -40,11 +40,15 @@ def to_filetype(file: Path) -> FileType:
 
 class Filesystem:
     def _db_create_table(self):
-        _ = self.db.execute(SQL_CREATE_TABLE)
+        _ = self.db.executescript(SQL_CREATE_TABLE)
         _ = self.db.commit()
 
     def _db_insert(self, rows):
         _ = self.db.executemany(SQL_INSERT_FILES, rows)
+        _ = self.db.commit()
+
+    def _db_delete(self, directory: Path):
+        _ = self.db.execute(SQL_DELETE_FILES, {"d_name": directory.as_posix()})
         _ = self.db.commit()
 
     def _db_select(self, path: Path):
@@ -92,12 +96,13 @@ class Filesystem:
                 "_row_ts": epoch_time,
             }
 
-    def get(self, path: Path, reload: bool = False):
-        if not reload:
+    def get(self, path: Path, use_cache: bool = True):
+        if use_cache:
             rows = self._db_select(path)
             if len(rows):
                 return rows
 
+        self._db_delete(path)
         self._db_insert(self.get_files(path))
         rows = self._db_select(path)
         return rows

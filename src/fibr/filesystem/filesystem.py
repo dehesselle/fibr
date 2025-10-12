@@ -56,6 +56,14 @@ class Filesystem:
 
     def get_files(self, path: Path):
         epoch_time = int(time.time())
+        yield {
+            "d_name": path.as_posix(),
+            "f_name": "..",
+            "f_size": path.parent.stat().st_size,
+            "f_modified": path.parent.stat().st_mtime,
+            "f_type": to_filetype(path.parent),
+            "_row_ts": epoch_time,
+        }
         for file in path.iterdir():
             yield {
                 "d_name": file.parent.as_posix(),

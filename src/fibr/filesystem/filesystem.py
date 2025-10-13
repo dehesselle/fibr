@@ -86,12 +86,13 @@ class Filesystem:
                 "_row_ts": epoch_time,
             }
         for file in directory.iterdir():
+            # this excludes fifo, symlink, junction
+            is_file_or_dir: bool = file.is_file() or file.is_dir()
             yield {
                 "d_name": file.parent.as_posix(),
                 "f_name": file.name,
-                # TODO: some workarounds for symlinks here
-                "f_size": file.stat().st_size if not file.is_symlink() else 0,
-                "f_modified": file.stat().st_mtime if not file.is_symlink() else 0,
+                "f_size": file.stat().st_size if is_file_or_dir else 0,
+                "f_modified": file.stat().st_mtime if is_file_or_dir else 0,
                 "f_type": to_filetype(file),
                 "_row_ts": epoch_time,
             }

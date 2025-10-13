@@ -62,6 +62,7 @@ class Panel(Vertical):
         self.directory = directory
         self.fs = Filesystem()
         self.cursor_row_before_search = 0
+        self.highlighted_row = RowKey()
 
     def compose(self) -> ComposeResult:
         yield FileList(id=self.id)
@@ -122,7 +123,8 @@ class Panel(Vertical):
 
     @on(FileList.RowHighlighted)
     def _show_highlighted_row_in_search_bar(self, event: FileList.RowHighlighted):
-        self.show_name_in_search_bar(event.row_key)
+        self.highlighted_row = event.row_key
+        self.show_name_in_search_bar(self.highlighted_row)
 
     def show_name_in_search_bar(self, row_key: RowKey | str):
         search_bar = self.query_one(SearchBar)

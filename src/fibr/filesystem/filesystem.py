@@ -1,20 +1,15 @@
 from pathlib import Path
-import sqlite3
 from enum import IntEnum
 import logging
 from importlib.resources import read_text
 import time
 
 from .search import Search
+from .db import Files, db
 
 log = logging.getLogger("fs")
 
-SQL_CREATE_TABLE = read_text("fibr.filesystem", "create_table.sql")
-SQL_INSERT_FILES = read_text("fibr.filesystem", "insert_files.sql")
 SQL_GET_FILES_IN_DIR = read_text("fibr.filesystem", "get_files_in_dir.sql")
-SQL_DELETE_FILES = read_text("fibr.filesystem", "delete_files.sql")
-SQL_SEARCH_FILENAME_LIKE = read_text("fibr.filesystem", "search_filename_like.sql")
-SQL_GET_ROWID = read_text("fibr.filesystem", "get_rowid.sql")
 
 
 class FileType(IntEnum):
@@ -39,40 +34,29 @@ def to_filetype(file: Path) -> FileType:
 
 
 class Filesystem:
+    def __init__(self):
+        self._db_create_table()
+        self.search = Search()
+
     def _db_create_table(self):
-        _ = self.db.executescript(SQL_CREATE_TABLE)
-        _ = self.db.commit()
+        db.create_tables([Files])
 
-    def _db_insert(self, rows):
-        _ = self.db.executemany(SQL_INSERT_FILES, rows)
-        _ = self.db.commit()
+    def _db_delete_files(self, directory: Path):
+        query = Files.delete().where(Files.d_name == directory)
+        _ = query.execute()
 
-    def _db_delete(self, directory: Path):
-        _ = self.db.execute(SQL_DELETE_FILES, {"d_name": directory.as_posix()})
-        _ = self.db.commit()
+    def _db_insert_files(self, rows):
+        Files.insert_many(rows).execute()
 
-    def _db_select(self, path: Path):
-        cursor = self.db.execute(
+    def _db_select_files(self, path: Path):
+        cursor = db.execute_sql(
             SQL_GET_FILES_IN_DIR,
-            {"d_name": path.as_posix()},
+            (path.as_posix(),),
         )
         rows = cursor.fetchall()
         return rows
 
-    def _db_get_rowid(self, directory: str, filename: str) -> int:
-        cursor = self.db.execute(
-            SQL_GET_ROWID,
-            {"d_name": directory, "f_name": filename},
-        )
-        row = cursor.fetchone()
-        return row[0]
-
-    def __init__(self):
-        self.db = sqlite3.connect(":memory:")
-        self._db_create_table()
-        self.search = Search(self.db)
-
-    def get_files(self, directory: Path):
+    def _read_directory(self, directory: Path):
         log.debug(f"         directory: {directory}")
         directory = directory.resolve()
         log.debug(f"resolved directory: {directory}")
@@ -83,7 +67,7 @@ class Filesystem:
                 "d_name": directory.as_posix(),
                 "f_name": "..",
                 "f_size": directory.parent.stat().st_size,
-                "f_modified": directory.parent.stat().st_mtime,
+                "f_mtime": directory.parent.stat().st_mtime,
                 "f_type": to_filetype(directory.parent),
                 "_row_ts": epoch_time,
             }
@@ -94,18 +78,17 @@ class Filesystem:
                 "d_name": file.parent.as_posix(),
                 "f_name": file.name,
                 "f_size": file.stat().st_size if is_file_or_dir else 0,
-                "f_modified": file.stat().st_mtime if is_file_or_dir else 0,
+                "f_mtime": file.stat().st_mtime if is_file_or_dir else 0,
                 "f_type": to_filetype(file),
                 "_row_ts": epoch_time,
             }
 
     def get(self, path: Path, use_cache: bool = True):
         if use_cache:
-            rows = self._db_select(path)
+            rows = self._db_select_files(path)
             if len(rows):
                 return rows
 
-        self._db_delete(path)
-        self._db_insert(self.get_files(path))
-        rows = self._db_select(path)
-        return rows
+        self._db_delete_files(path)
+        self._db_insert_files(self._read_directory(path))
+        return self._db_select_files(path)

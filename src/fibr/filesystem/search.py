@@ -1,42 +1,31 @@
-from importlib.resources import read_text
 import logging
-from sqlite3 import Connection
-from typing import List
+
+from .db import Files
+from peewee import fn
 
 log = logging.getLogger("fs")
 
-SQL_SEARCH_FILENAME_LIKE = read_text("fibr.filesystem", "search_filename_like.sql")
-
 
 class Search:
-    def __init__(self, db: Connection):
-        self.db = db
+    def __init__(self):
         self.results = list()
         self.index = -1
 
-    def _db_search_files(
-        self, directory: str, filename: str, is_word: bool
-    ) -> List[int]:
-        if not is_word:
-            filename += "%"
-        cursor = self.db.execute(
-            SQL_SEARCH_FILENAME_LIKE,
-            [directory, filename],
-        )
-        rows = cursor.fetchall()
-        log.debug(f"found {len(rows)} rows")
+    def _db_search_files_like(self, directory: str, filename: str):
+        self.results = [
+            row[0]
+            for row in Files.select(Files.id)
+            .where(
+                fn.LOWER(Files.f_name).startswith(filename.lower()),
+                Files.d_name == directory,
+            )
+            .tuples()
+        ]
+        self.index = -1
 
-        if len(rows):
-            return [row[0] for row in rows]
-        else:
-            return list()
-
-    def next(
-        self, directory: str = None, filename: str = None, is_word: bool = False
-    ) -> int:
+    def next(self, directory: str = None, filename: str = None) -> int:
         if directory:
-            self.results = self._db_search_files(directory, filename, is_word)
-            self.index = -1
+            self._db_search_files_like(directory, filename)
 
         if len(self.results):
             self.index += 1
@@ -47,11 +36,9 @@ class Search:
         else:
             return 0
 
-    def previous(
-        self, directory: str = None, filename: str = None, is_word: bool = False
-    ) -> int:
+    def previous(self, directory: str = None, filename: str = None) -> int:
         if directory:
-            self.results = self._db_search_files(directory, filename, is_word)
+            self.results = self._db_search_files_like(directory, filename, is_word)
             self.index = -1
 
         if len(self.results):

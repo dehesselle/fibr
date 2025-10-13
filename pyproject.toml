@@ -5,7 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 authors = [{ name = "René de Hesselle", email = "dehesselle@web.de" }]
 requires-python = ">=3.12"
-dependencies = ["textual~=6.3"]
+dependencies = [
+    "peewee>=3.18.2",
+    "textual~=6.3",
+]
 
 [project.scripts]
 fibr = "fibr:main"

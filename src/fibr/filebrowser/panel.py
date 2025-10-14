@@ -68,15 +68,27 @@ class Panel(Vertical):
         self.reload()
 
     def reload(self, use_cache: bool = True):
+        if self.directory.name == "..":
+            parent_name = self.directory.parent.name
+        else:
+            parent_name = str()
+
+        self.directory = self.directory.resolve()
         table = self.query_one(FileList)
         table.clear()
-        self.directory = self.directory.resolve()
         for row in self.fs.get(self.directory, use_cache=use_cache):
             table.add_row(
                 row[1],
                 util.bytes_to_str(row[2]),
                 util.epoch_to_str(row[3]),
                 key=str(row[0]),
+            )
+
+        if parent_name:
+            table.move_cursor(
+                row=table.get_row_index(
+                    str(self.fs.get_id(self.directory, parent_name))
+                )
             )
 
     def start_search(self, character: str):

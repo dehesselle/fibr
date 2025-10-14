@@ -94,3 +94,14 @@ class Filesystem:
         self._db_delete_files(directory)
         self._db_insert_files(self._read_directory(directory))
         return self._db_select_files(directory)
+
+    def get_id(self, directory: Path, filename: str) -> int:
+        rows = (
+            Files.select(Files.id)
+            .where(Files.d_name == directory, Files.f_name == filename)
+            .tuples()
+        )
+        if len(rows):
+            return rows[0][0]
+        else:
+            return 0

@@ -1,9 +1,9 @@
 import argparse
 import logging
-import os
 from pathlib import Path
 
 import fibr.config as config
+import fibr.util as util
 from .fibr import FibrApp
 
 try:
@@ -12,26 +12,6 @@ except ImportError:
     version = "0.0.0"
 
 log = logging.getLogger("main")
-
-
-def setup_logging(logfile: str) -> None:
-    level = os.environ.get("FIBR_LOGLEVEL", "").upper()
-
-    if level:
-        file_handler = logging.FileHandler(logfile)
-        file_handler.setLevel(level)
-        file_handler.setFormatter(
-            logging.Formatter(
-                "%(asctime)-23s | %(name)-14s | %(funcName)-20s | %(levelname)-8s | %(message)s"
-            )
-        )
-
-        logging.basicConfig(
-            level=level,
-            handlers=[
-                file_handler,
-            ],
-        )
 
 
 def main() -> None:
@@ -46,7 +26,7 @@ def main() -> None:
     parser.add_argument("--version", action="version", version=f"fibr {version}")
     args = parser.parse_args()
 
-    setup_logging("fibr.log")
+    util.setup_logging("fibr.log")
     log.info("begin")
     config.load()
 

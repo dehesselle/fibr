@@ -1,7 +1,6 @@
 import logging
 from os import system
 from pathlib import Path
-from datetime import datetime
 
 from textual.widgets import Rule
 from textual.widgets.data_table import RowKey
@@ -19,33 +18,21 @@ from .filelist import FileList
 log = logging.getLogger("panel")
 
 
-def epoch_to_str(epoch: int) -> str:
-    dt = datetime.fromtimestamp(epoch)
-    if dt.year == datetime.now().year:
-        return dt.strftime("%d. %b %H:%M")
-    else:
-        return dt.strftime("%d. %b %Y")
-
-
-def bytes_to_str(bytes: int) -> str:
-    if bytes > 9999999:
-        kb = int(bytes / 1024)
-        if kb > 999999:
-            mb = int(kb / 1024)
-            if mb > 9999999:
-                gb = int(mb / 1024)
-                return (str(gb) + "G").rjust(7)
-            else:
-                return (str(mb) + "M").rjust(7)
-        else:
-            return (str(kb) + "K").rjust(7)
-    else:
-        return str(bytes).rjust(7)
-
-
 class Panel(Vertical):
     BINDINGS = [
+        # Binding("f3", "view", "View", key_display="3"),
         Binding("f4", "edit", "Edit", key_display="4"),
+        # Binding("f5", "copy", "Copy", key_display="5"),
+        # Binding(
+        #     "f6",
+        #     "move",
+        #     "RenMov",
+        #     key_display="6",
+        #     tooltip="      F6 move\nShift+F6 rename",
+        # ),
+        # Binding("shift+f6", "rename", "RenMov", show=False),
+        # Binding("f7", "mkdir", "Mkdir", key_display="7"),
+        # Binding("f8", "delete", "Delete", key_display="8"),
         Binding("ctrl+r", "reload", show=False),
     ]
 
@@ -86,7 +73,10 @@ class Panel(Vertical):
         self.directory = self.directory.resolve()
         for row in self.fs.get(self.directory, use_cache=use_cache):
             table.add_row(
-                row[1], bytes_to_str(row[2]), epoch_to_str(row[3]), key=str(row[0])
+                row[1],
+                util.bytes_to_str(row[2]),
+                util.epoch_to_str(row[3]),
+                key=str(row[0]),
             )
 
     def start_search(self, character: str):

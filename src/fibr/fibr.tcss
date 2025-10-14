@@ -1,8 +1,0 @@
-.footer-key--description {
-    padding: 0;
-    width: 6;
-}
-
-FooterKey {
-    width: 8;
-}

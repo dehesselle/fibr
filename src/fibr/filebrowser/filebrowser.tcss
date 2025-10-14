@@ -11,3 +11,12 @@ DataTable {
     height: 100fr;
     scrollbar-size: 1 1
 }
+
+.footer-key--description {
+    padding: 0;
+    width: 6;
+}
+
+FooterKey {
+    width: 8;
+}

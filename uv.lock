@@ -7,12 +7,14 @@ name = "fibr"
 source = { editable = "." }
 dependencies = [
     { name = "peewee" },
+    { name = "platformdirs" },
     { name = "textual" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "peewee", specifier = ">=3.18.2" },
+    { name = "platformdirs", specifier = ">=4.5.0" },
     { name = "textual", specifier = "~=6.3" },
 ]
 

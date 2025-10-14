@@ -9,7 +9,9 @@ from .db import Files, db
 
 log = logging.getLogger("fs")
 
-SQL_GET_FILES_IN_DIR = read_text("fibr.filesystem", "get_files_in_dir.sql")
+SQL_GET_FILES_IN_DIR = " ".join(
+    [_.strip() for _ in read_text("fibr.filesystem", "get_files_in_dir.sql").split()]
+)
 
 
 class FileType(IntEnum):
@@ -38,20 +40,21 @@ class Filesystem:
         self._db_create_table()
         self.search = Search()
 
-    def _db_create_table(self):
+    def _db_create_table(self) -> None:
         db.create_tables([Files])
 
-    def _db_delete_files(self, directory: Path):
+    def _db_delete_files(self, directory: Path) -> None:
         query = Files.delete().where(Files.d_name == directory)
         _ = query.execute()
+        log.debug(f"deleted {_} records")
 
-    def _db_insert_files(self, rows):
+    def _db_insert_files(self, rows) -> None:
         Files.insert_many(rows).execute()
 
-    def _db_select_files(self, path: Path):
+    def _db_select_files(self, directory: Path) -> list:
         cursor = db.execute_sql(
             SQL_GET_FILES_IN_DIR,
-            (path.as_posix(),),
+            (str(directory),),
         )
         rows = cursor.fetchall()
         return rows
@@ -62,7 +65,7 @@ class Filesystem:
         is_root: bool = directory == Path(directory.anchor)
         if not is_root:
             yield {
-                "d_name": directory.as_posix(),
+                "d_name": str(directory),
                 "f_name": "..",
                 "f_size": directory.parent.stat().st_size,
                 "f_mtime": directory.parent.stat().st_mtime,
@@ -73,7 +76,7 @@ class Filesystem:
             # this excludes fifo, symlink, junction
             is_file_or_dir: bool = file.is_file() or file.is_dir()
             yield {
-                "d_name": file.parent.as_posix(),
+                "d_name": str(file.parent),
                 "f_name": file.name,
                 "f_size": file.stat().st_size if is_file_or_dir else 0,
                 "f_mtime": file.stat().st_mtime if is_file_or_dir else 0,
@@ -81,12 +84,13 @@ class Filesystem:
                 "_row_ts": epoch_time,
             }
 
-    def get(self, path: Path, use_cache: bool = True):
+    def get(self, directory: Path, use_cache: bool = True):
         if use_cache:
-            rows = self._db_select_files(path)
+            rows = self._db_select_files(directory)
             if len(rows):
+                # note: an empty directory will never be cached
                 return rows
 
-        self._db_delete_files(path)
-        self._db_insert_files(self._read_directory(path))
-        return self._db_select_files(path)
+        self._db_delete_files(directory)
+        self._db_insert_files(self._read_directory(directory))
+        return self._db_select_files(directory)

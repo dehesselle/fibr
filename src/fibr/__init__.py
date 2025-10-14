@@ -3,6 +3,7 @@ import logging
 import os
 from pathlib import Path
 
+import fibr.config as config
 from .fibr import FibrApp
 
 try:
@@ -46,9 +47,12 @@ def main() -> None:
     args = parser.parse_args()
 
     setup_logging("fibr.log")
-
     log.info("begin")
+    config.load()
+
     app = FibrApp()
     app.starting_directory = args.starting_dir
     app.run()
+
+    config.save()
     log.info("end")

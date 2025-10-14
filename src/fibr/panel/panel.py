@@ -1,4 +1,5 @@
 import logging
+from os import system
 from pathlib import Path
 from datetime import datetime
 
@@ -7,8 +8,10 @@ from textual.widgets.data_table import RowKey
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual import events, on
+from textual.binding import Binding
 
 from fibr.filesystem import Filesystem
+import fibr.util as util
 from .searchbar import SearchBar
 from .filelist import FileList
 
@@ -41,6 +44,11 @@ def bytes_to_str(bytes: int) -> str:
 
 
 class Panel(Vertical):
+    BINDINGS = [
+        Binding("f4", "edit", "Edit", key_display="4"),
+        Binding("ctrl+r", "reload", show=False),
+    ]
+
     def __init__(
         self,
         *children,
@@ -94,7 +102,7 @@ class Panel(Vertical):
     @on(SearchBar.Changed)
     def _move_cursor_to_first_match(self, event: SearchBar.Changed):
         if not event.input.disabled:
-            rowid = self.fs.search.next(self.directory.as_posix(), event.value)
+            rowid = self.fs.search.next(str(self.directory), event.value)
             table = self.query_one(FileList)
             if rowid:
                 table.move_cursor(row=table.get_row_index(str(rowid)))
@@ -155,3 +163,21 @@ class Panel(Vertical):
         if target.is_dir():
             self.directory = target
             self.reload()
+
+    def action_edit(self) -> None:
+        with self.app.suspend():
+            table = self.query_one(FileList)
+            object = Path(table.get_cell(self.highlighted_row, "name"))
+            if object.is_file():
+                editor = util.get_editor()
+                rc = system(f"{editor} {object}")
+                if rc:
+                    self.app.notify(
+                        f"failed to call editor {editor}",
+                        title="error",
+                        severity="error",
+                        timeout=5,
+                    )
+
+    def action_reload(self) -> None:
+        self.reload(use_cache=False)

@@ -6,7 +6,6 @@ from textual.app import App, ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Footer
 from textual.binding import Binding
-from textual import events
 
 from fibr.panel import Panel
 
@@ -27,7 +26,6 @@ class FibrApp(App):
         # Binding("f1", "help", "Help", key_display="1"),
         # Binding("f2", "menu", "Menu", key_display="2"),
         # Binding("f3", "view", "View", key_display="3"),
-        # Binding("f4", "edit", "Edit", key_display="4"),
         # Binding("f5", "copy", "Copy", key_display="5"),
         # Binding(
         #     "f6",
@@ -41,7 +39,6 @@ class FibrApp(App):
         # Binding("f8", "delete", "Delete", key_display="8"),
         # Binding("f9", "pulldown_menu", "PullDn ", key_display="9"),
         Binding("f10", "quit", "Quit", key_display="10"),
-        Binding("ctrl+r", "reload_panel", show=False),
     ]
     CSS_PATH = ["fibr.tcss", "panel/panel.tcss"]
 
@@ -61,9 +58,6 @@ class FibrApp(App):
     def action_view(self) -> None:
         pass
 
-    def action_edit(self) -> None:
-        pass
-
     def action_copy(self) -> None:
         pass
 
@@ -81,10 +75,6 @@ class FibrApp(App):
 
     def action_pulldown_menu(self) -> None:
         pass
-
-    def action_reload_panel(self) -> None:
-        panel = self.query_one(to_selector(self.active_panel), Panel)
-        panel.reload(use_cache=False)
 
     def compose(self) -> ComposeResult:
         yield Horizontal(

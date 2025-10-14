@@ -1,6 +1,7 @@
 import logging
 from os import system
 from pathlib import Path
+import re
 
 from textual.widgets import Rule
 from textual.widgets.data_table import RowKey
@@ -149,14 +150,29 @@ class Panel(Vertical):
 
     @on(SearchBar.Submitted)
     def _process_search_result(self, event: SearchBar.Submitted):
+        log.debug(f"event.value: {event.value}")
         table = self.query_one(FileList)
         name = table.get_cell_at((table.cursor_row, 0))
-        self.show_name_in_search_bar(name)
 
+        # if it's a drive letter on windows: change drive
+        if re.match(r"^[A-Za-z]\:$", event.value) and util.is_windows():
+            directory = Path(event.value + "/")
+            if directory.exists():
+                self.directory = directory
+                self.reload()
+            else:
+                self.app.notify(
+                    f"does not exist: {directory}",
+                    title="error",
+                    severity="error",
+                    timeout=5,
+                )
         # if it's a directory: enter the directory
-        if (directory := self.directory / name).is_dir():
+        elif (directory := self.directory / name).is_dir():
             self.directory = directory
             self.reload()
+        else:
+            self.show_name_in_search_bar(name)
 
     @on(FileList.Executed)
     def _change_directory(self, event: FileList.Executed):

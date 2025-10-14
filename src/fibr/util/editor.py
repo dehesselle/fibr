@@ -1,20 +1,19 @@
 import logging
-import platform
 import fibr.config as config
+from .platform import is_linux, is_macos, is_windows
 
 log = logging.getLogger("util")
 
 
 def get_editor() -> str:
     if not config.exists("editor"):
-        match platform.system():
-            case "Darwin":
-                return config.getStr("editor", "vi")
-            case "Linux":
-                return config.getStr("editor", "vi")
-            case "Windows":
-                return config.getStr("editor", "edit.exe")
-            case _:
-                log.error(f"unknown platform {platform.system()}")
-                return "unknown"
+        if is_linux():
+            return config.getStr("editor", "vi")
+        elif is_macos():
+            return config.getStr("editor", "vi")
+        elif is_windows():
+            return config.getStr("editor", "edit.exe")
+        else:
+            log.error(f"unknown platform")
+            return "unknown"
     return config.getStr("editor")

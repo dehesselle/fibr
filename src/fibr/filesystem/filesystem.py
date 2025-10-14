@@ -57,9 +57,7 @@ class Filesystem:
         return rows
 
     def _read_directory(self, directory: Path):
-        log.debug(f"         directory: {directory}")
-        directory = directory.resolve()
-        log.debug(f"resolved directory: {directory}")
+        log.debug(f"directory: {directory}")
         epoch_time = int(time.time())
         is_root: bool = directory == Path(directory.anchor)
         if not is_root:

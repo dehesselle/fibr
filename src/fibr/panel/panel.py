@@ -75,6 +75,7 @@ class Panel(Vertical):
     def reload(self, use_cache: bool = True):
         table = self.query_one(FileList)
         table.clear()
+        self.directory = self.directory.resolve()
         for row in self.fs.get(self.directory, use_cache=use_cache):
             table.add_row(
                 row[1], bytes_to_str(row[2]), epoch_to_str(row[3]), key=str(row[0])
@@ -152,5 +153,5 @@ class Panel(Vertical):
         target = self.directory / event.value
         log.debug(f"target: {target}")
         if target.is_dir():
-            self.directory = target.resolve()
+            self.directory = target
             self.reload()

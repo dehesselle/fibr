@@ -12,7 +12,6 @@ from textual.binding import Binding
 
 from fibr.filesystem import Filesystem
 import fibr.util as util
-import fibr.config as config
 from .searchbar import SearchBar
 from .filelist import FileList
 
@@ -183,37 +182,25 @@ class Panel(Vertical):
             self.directory = target
             self.reload()
 
-    def action_edit(self) -> None:
+    def call_external_tool(self, tool: str) -> None:
         with self.app.suspend():
             table = self.query_one(FileList)
             object = self.directory / table.get_cell(self.highlighted_row, "name")
             if object.is_file():
-                editor = util.get_editor()
-                rc = system(f"{editor} {object}")
+                rc = system(f"{tool} {object}")
                 if rc:
                     self.app.notify(
-                        f"failed to call editor {editor}",
+                        f"failed to call {tool}",
                         title="error",
                         severity="error",
                         timeout=5,
                     )
 
+    def action_edit(self) -> None:
+        self.call_external_tool(util.get_editor())
+
     def action_view(self) -> None:
-        table = self.query_one(FileList)
-        object = self.directory / table.get_cell(self.highlighted_row, "name")
-        if object.is_file():
-            max_size = config.getInt("file_viewer_max_size", 1048576)
-            if object.stat().st_size > max_size:
-                self.app.notify(
-                    f"cannot view file > {max_size}",
-                    title="error",
-                    severity="error",
-                    timeout=5,
-                )
-            else:
-                file_viewer = self.app.get_screen("file_viewer")
-                file_viewer.read(object)
-                self.app.push_screen("file_viewer")
+        self.call_external_tool(util.get_viewer())
 
     def action_reload(self) -> None:
         self.reload(use_cache=False)

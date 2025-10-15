@@ -12,6 +12,7 @@ def get_editor() -> str:
         elif is_macos():
             return config.getStr("editor", "vi")
         elif is_windows():
+            # https://github.com/microsoft/edit
             return config.getStr("editor", "edit.exe")
         else:
             log.error(f"unknown platform")

@@ -12,6 +12,7 @@ from textual.binding import Binding
 
 from fibr.filesystem import Filesystem
 import fibr.util as util
+import fibr.config as config
 from .searchbar import SearchBar
 from .filelist import FileList
 
@@ -21,7 +22,7 @@ log = logging.getLogger("panel")
 
 class Panel(Vertical):
     BINDINGS = [
-        # Binding("f3", "view", "View", key_display="3"),
+        Binding("f3", "view", "View", key_display="3"),
         Binding("f4", "edit", "Edit", key_display="4"),
         # Binding("f5", "copy", "Copy", key_display="5"),
         # Binding(
@@ -185,7 +186,7 @@ class Panel(Vertical):
     def action_edit(self) -> None:
         with self.app.suspend():
             table = self.query_one(FileList)
-            object = Path(table.get_cell(self.highlighted_row, "name"))
+            object = self.directory / table.get_cell(self.highlighted_row, "name")
             if object.is_file():
                 editor = util.get_editor()
                 rc = system(f"{editor} {object}")
@@ -196,6 +197,23 @@ class Panel(Vertical):
                         severity="error",
                         timeout=5,
                     )
+
+    def action_view(self) -> None:
+        table = self.query_one(FileList)
+        object = self.directory / table.get_cell(self.highlighted_row, "name")
+        if object.is_file():
+            max_size = config.getInt("file_viewer_max_size", 1048576)
+            if object.stat().st_size > max_size:
+                self.app.notify(
+                    f"cannot view file > {max_size}",
+                    title="error",
+                    severity="error",
+                    timeout=5,
+                )
+            else:
+                file_viewer = self.app.get_screen("file_viewer")
+                file_viewer.read(object)
+                self.app.push_screen("file_viewer")
 
     def action_reload(self) -> None:
         self.reload(use_cache=False)

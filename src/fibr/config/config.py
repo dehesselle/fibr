@@ -35,7 +35,7 @@ def getInt(option: str, fallback: int = -1, section: str = MAIN_SECTION) -> int:
     except configparser.NoOptionError:
         if not config.has_section(section):
             config.add_section(section)
-        config.set(section, option, fallback)
+        config.set(section, option, str(fallback))
     return config.getint(section, option)
 
 

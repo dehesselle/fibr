@@ -139,15 +139,15 @@ class Panel(Vertical):
         self.highlighted_row = event.row_key
         self.show_name_in_search_bar(self.highlighted_row)
 
-    def show_name_in_search_bar(self, row_key: RowKey | str):
+    def show_name_in_search_bar(self, name: RowKey | str):
         search_bar = self.query_one(SearchBar)
         # Only use the search bar as an info bar if it's not in use.
         if search_bar.disabled:
             table = self.query_one(FileList)
-            if isinstance(row_key, RowKey):
-                search_bar.value = table.get_cell(row_key, "name")
+            if isinstance(name, RowKey):
+                search_bar.value = table.get_cell(name, "name")
             else:
-                search_bar.value = row_key
+                search_bar.value = name
 
     @on(SearchBar.Submitted)
     def _process_search_result(self, event: SearchBar.Submitted):

@@ -84,6 +84,7 @@ class Panel(Vertical):
                 util.epoch_to_str(row[3]),
                 key=str(row[0]),
             )
+        self.border_title = self.directory.name
 
         if parent_name:
             table.move_cursor(

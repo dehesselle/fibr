@@ -154,7 +154,7 @@ class Panel(Vertical):
         table = self.query_one(FileList)
         name = table.get_cell_at((table.cursor_row, 0))
 
-        # if it's a drive letter on windows: change drive
+        # drive letter on windows: change drive
         if re.match(r"^[A-Za-z]\:$", event.value) and util.is_windows():
             directory = Path(event.value + "/")
             if directory.exists():
@@ -167,7 +167,12 @@ class Panel(Vertical):
                     severity="error",
                     timeout=5,
                 )
-        # if it's a directory: enter the directory
+        # command line usage: execute program
+        elif match := re.match(r"^:([^ ]+)", event.value):
+            # TODO: what about "selected rows as args"?
+            # maybe if command has no args but trailing space?
+            self.execute_command(match.group(1))
+        # directory: enter the directory
         elif (directory := self.directory / name).is_dir():
             self.directory = directory
             self.reload()
@@ -182,25 +187,32 @@ class Panel(Vertical):
             self.directory = target
             self.reload()
 
-    def call_external_tool(self, tool: str) -> None:
+    def execute_command(self, command: str, err_message: str = "") -> None:
         with self.app.suspend():
-            table = self.query_one(FileList)
-            object = self.directory / table.get_cell(self.highlighted_row, "name")
-            if object.is_file():
-                rc = system(f"{tool} {object}")
-                if rc:
-                    self.app.notify(
-                        f"failed to call {tool}",
-                        title="error",
-                        severity="error",
-                        timeout=5,
-                    )
+            rc = system(command)
+            if rc:
+                self.app.notify(
+                    err_message if err_message else command,
+                    title=f"error (rc={rc})",
+                    severity="error",
+                    timeout=5,
+                )
 
     def action_edit(self) -> None:
-        self.call_external_tool(util.get_editor())
+        table = self.query_one(FileList)
+        object = self.directory / table.get_cell(self.highlighted_row, "name")
+        if object.is_file():
+            self.execute_command(
+                f"{util.get_editor()} {object}", f"failed to call {util.get_editor()}"
+            )
 
     def action_view(self) -> None:
-        self.call_external_tool(util.get_viewer())
+        table = self.query_one(FileList)
+        object = self.directory / table.get_cell(self.highlighted_row, "name")
+        if object.is_file():
+            self.execute_command(
+                f"{util.get_viewer()} {object}", f"failed to call {util.get_viewer()}"
+            )
 
     def action_reload(self) -> None:
         self.reload(use_cache=False)

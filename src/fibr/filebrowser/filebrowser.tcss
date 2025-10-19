@@ -2,11 +2,6 @@ Panel {
     border: gray;
 }
 
-Rule {
-    margin: 0;
-    color: gray;
-}
-
 DataTable {
     height: 100fr;
     scrollbar-size: 1 1
@@ -19,4 +14,11 @@ DataTable {
 
 FooterKey {
     width: 8;
+}
+
+InfoBar {
+    height: 1;
+    margin: 0 0;
+    width: 1fr;
+    content-align: center middle;
 }

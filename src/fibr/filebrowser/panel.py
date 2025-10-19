@@ -3,7 +3,6 @@ from os import system
 from pathlib import Path
 import re
 
-from textual.widgets import Rule
 from textual.widgets.data_table import RowKey
 from textual.app import ComposeResult
 from textual.containers import Vertical
@@ -14,6 +13,7 @@ from fibr.filesystem import Filesystem
 import fibr.util as util
 from .searchbar import SearchBar
 from .filelist import FileList
+from .infobar import InfoBar
 
 
 log = logging.getLogger("panel")
@@ -62,7 +62,7 @@ class Panel(Vertical):
 
     def compose(self) -> ComposeResult:
         yield FileList(id=self.id)
-        yield Rule()
+        yield InfoBar()
         yield SearchBar()
 
     def on_mount(self) -> None:

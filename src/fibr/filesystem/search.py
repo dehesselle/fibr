@@ -1,6 +1,6 @@
 import logging
 
-from .db import Files
+from .files import Files
 from peewee import fn
 
 log = logging.getLogger("fs")
@@ -11,7 +11,7 @@ class Search:
         self.results = list()
         self.index = -1
 
-    def _db_search_files_like(self, directory: str, filename: str):
+    def _search_files_like(self, directory: str, filename: str):
         self.results = [
             row[0]
             for row in Files.select(Files.id)
@@ -25,7 +25,7 @@ class Search:
 
     def next(self, directory: str = None, filename: str = None) -> int:
         if directory:
-            self._db_search_files_like(directory, filename)
+            self._search_files_like(directory, filename)
 
         if len(self.results):
             self.index += 1
@@ -38,7 +38,7 @@ class Search:
 
     def previous(self, directory: str = None, filename: str = None) -> int:
         if directory:
-            self.results = self._db_search_files_like(directory, filename, is_word)
+            self.results = self._search_files_like(directory, filename)
             self.index = -1
 
         if len(self.results):

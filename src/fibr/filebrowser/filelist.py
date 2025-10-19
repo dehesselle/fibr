@@ -18,20 +18,20 @@ class FileList(DataTable):
     def on_mount(self):
         self.add_column("Name", width=1, key="name")
         self.add_column("Size", width=7, key="size")
-        self.add_column("Modify time", width=13, key="modify")
+        self.add_column("Modify time", width=13, key="mtime")
         self.cursor_type = "row"
         self.cell_padding = 1
         super().on_mount()
 
     @property
-    def dynamic_name_column_width(self) -> int:
+    def max_name_column_width(self) -> int:
         return self.size.width - (
-            self.columns["size"].width + self.columns["modify"].width + 7
+            self.columns["size"].width + self.columns["mtime"].width + 7
         )
 
     def _on_resize(self, _):
         super()._on_resize(_)
-        self.columns["name"].width = self.dynamic_name_column_width
+        self.columns["name"].width = self.max_name_column_width
         self.refresh()
 
     def action_execute(self):

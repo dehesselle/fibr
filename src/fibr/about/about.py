@@ -3,10 +3,7 @@ from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.widgets import TextArea, Footer
 
-try:
-    from fibr._version import version
-except ImportError:
-    version = "0.0.0"
+import fibr.util as util
 
 
 # pyfiglet -f cricket fibr
@@ -38,4 +35,4 @@ class AboutDialog(ModalScreen):
     def on_mount(self):
         ta = self.query_one(TextArea)
         ta.text = ABOUT_TEXT
-        ta.border_title = "v" + version
+        ta.border_title = "v" + util.version

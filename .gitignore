@@ -5,7 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
-src/fibr/_version.py
+src/fibr/_hatch_build_hooks_vcs.py
 
 # Virtual environments
 .venv

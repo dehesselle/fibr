@@ -6,11 +6,6 @@ import fibr.config as config
 import fibr.util as util
 from .fibr import FibrApp
 
-try:
-    from fibr._version import version
-except ImportError:
-    version = "0.0.0"
-
 log = logging.getLogger("main")
 
 
@@ -23,7 +18,7 @@ def main() -> None:
         default=".",
         nargs="?",
     )
-    parser.add_argument("--version", action="version", version=f"fibr {version}")
+    parser.add_argument("--version", action="version", version=f"fibr {util.version}")
     args = parser.parse_args()
 
     util.setup_logging("fibr.log")

@@ -38,6 +38,7 @@ class Panel(Vertical):
         # Binding("f8", "delete", "Delete", key_display="8"),
         Binding("ctrl+r", "reload", show=False),
         Binding("ctrl+t", "toggle_select", show=False),
+        Binding("insert", "toggle_select", show=False),
     ]
 
     def __init__(

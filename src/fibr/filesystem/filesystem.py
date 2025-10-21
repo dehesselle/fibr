@@ -1,5 +1,5 @@
 from pathlib import Path
-from enum import IntEnum
+from enum import IntEnum, auto
 import logging
 import time
 
@@ -11,10 +11,10 @@ log = logging.getLogger("fs")
 
 class FileType(IntEnum):
     UNKNOWN = 0
-    FILE = 1
-    DIR = 2
-    LINK = 3
-    FIFO = 4
+    FILE = auto()
+    DIR = auto()
+    LINK = auto()
+    FIFO = auto()
 
 
 def to_filetype(file: Path) -> FileType:
@@ -41,23 +41,25 @@ class Filesystem:
         is_root: bool = directory == Path(directory.anchor)
         if not is_root:
             yield {
-                "d_name": str(directory),
-                "f_mtime": directory.parent.stat().st_mtime,
-                "f_name": "..",
-                "f_size": directory.parent.stat().st_size,
-                "f_type": to_filetype(directory.parent),
-                "_row_ts": epoch_time,
+                Files.d_name.column_name: str(directory),
+                Files.f_mtime.column_name: directory.parent.stat().st_mtime,
+                Files.f_name.column_name: "..",
+                Files.f_size.column_name: directory.parent.stat().st_size,
+                Files.f_type.column_name: to_filetype(directory.parent),
+                Files._row_ts.column_name: epoch_time,
             }
         for file in directory.iterdir():
             # this excludes fifo, symlink, junction
             is_file_or_dir: bool = file.is_file() or file.is_dir()
             yield {
-                "d_name": str(file.parent),
-                "f_mtime": file.stat().st_mtime if is_file_or_dir else 0,
-                "f_name": file.name,
-                "f_size": file.stat().st_size if is_file_or_dir else 0,
-                "f_type": to_filetype(file),
-                "_row_ts": epoch_time,
+                Files.d_name.column_name: str(file.parent),
+                Files.f_mtime.column_name: (
+                    file.stat().st_mtime if is_file_or_dir else 0
+                ),
+                Files.f_name.column_name: file.name,
+                Files.f_size.column_name: file.stat().st_size if is_file_or_dir else 0,
+                Files.f_type.column_name: to_filetype(file),
+                Files._row_ts.column_name: epoch_time,
             }
 
     def get(self, directory: Path, use_cache: bool = True):

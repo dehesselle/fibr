@@ -139,7 +139,11 @@ class Panel(Vertical):
         table.move_cursor(row=self.cursor_row_before_search)
 
     def on_key(self, event: events.Key):
-        if event.character and event.character.isprintable():
+        if (
+            event.character
+            and event.character.isprintable()
+            and not event.character.isspace()
+        ):
             self.start_search(event.character)
 
     @on(FileList.RowHighlighted)

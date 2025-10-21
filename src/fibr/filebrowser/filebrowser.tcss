@@ -7,15 +7,6 @@ DataTable {
     scrollbar-size: 1 1
 }
 
-.footer-key--description {
-    padding: 0;
-    width: 6;
-}
-
-FooterKey {
-    width: 8;
-}
-
 InfoBar {
     height: 1;
     margin: 0 0;

@@ -23,8 +23,9 @@ log = logging.getLogger("panel")
 
 class Panel(Vertical):
     BINDINGS = [
-        Binding("f3", "view", "View", key_display="3"),
-        Binding("f4", "edit", "Edit", key_display="4"),
+        Binding("f1", "app.push_screen('about_dialog')", "About"),
+        Binding("f3", "view", "View"),
+        Binding("f4", "edit", "Edit"),
         # Binding("f5", "copy", "Copy", key_display="5"),
         # Binding(
         #     "f6",
@@ -36,6 +37,7 @@ class Panel(Vertical):
         # Binding("shift+f6", "rename", "RenMov", show=False),
         # Binding("f7", "mkdir", "Mkdir", key_display="7"),
         # Binding("f8", "delete", "Delete", key_display="8"),
+        Binding("f10", "app.quit", "Quit"),
         Binding("ctrl+r", "reload", show=False),
         Binding("ctrl+t", "toggle_select", show=False),
         Binding("insert", "toggle_select", show=False),

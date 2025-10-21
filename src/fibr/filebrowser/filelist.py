@@ -11,9 +11,7 @@ class FileList(DataTable):
     ]
 
     class Executed(Message):
-        def __init__(self, value: str):
-            self.value = value
-            super().__init__()
+        pass
 
     def on_mount(self):
         self.add_column("Name", width=1, key="name")
@@ -35,5 +33,4 @@ class FileList(DataTable):
         self.refresh()
 
     def action_execute(self):
-        name = self.get_cell_at((self.cursor_row, 0))
-        self.post_message(self.Executed(name))
+        self.post_message(self.Executed())

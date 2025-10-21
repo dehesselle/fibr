@@ -81,3 +81,6 @@ class Filesystem:
             return rows[0][0]
         else:
             return 0
+
+    def get_name_by_id(self, id: int) -> str:
+        return Files.select(Files.f_name).where(Files.id == id).tuples()[0][0]

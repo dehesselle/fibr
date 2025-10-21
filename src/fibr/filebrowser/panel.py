@@ -3,11 +3,13 @@ from os import system
 from pathlib import Path
 import re
 
+from rich.text import Text
 from textual.widgets.data_table import RowKey
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual import events, on
 from textual.binding import Binding
+from textual.color import Color
 
 from fibr.filesystem import Filesystem
 import fibr.util as util
@@ -35,6 +37,7 @@ class Panel(Vertical):
         # Binding("f7", "mkdir", "Mkdir", key_display="7"),
         # Binding("f8", "delete", "Delete", key_display="8"),
         Binding("ctrl+r", "reload", show=False),
+        Binding("ctrl+t", "toggle_select", show=False),
     ]
 
     def __init__(
@@ -59,6 +62,7 @@ class Panel(Vertical):
         self.fs = Filesystem()
         self.cursor_row_before_search = 0
         self.highlighted_row = RowKey()
+        self.selected_rows = list()
 
     def compose(self) -> ComposeResult:
         yield FileList(id=self.id)
@@ -79,7 +83,11 @@ class Panel(Vertical):
         table.clear()
         for row in self.fs.get(self.directory, use_cache=use_cache):
             table.add_row(
-                row[1],
+                (
+                    Text(row[1], style=f"default bold on {Color.parse('sienna').hex}")
+                    if RowKey(str(row[0])) in self.selected_rows
+                    else row[1]
+                ),
                 util.bytes_to_str(row[2]),
                 util.epoch_to_str(row[3]),
                 key=str(row[0]),
@@ -143,17 +151,15 @@ class Panel(Vertical):
         search_bar = self.query_one(SearchBar)
         # Only use the search bar as an info bar if it's not in use.
         if search_bar.disabled:
-            table = self.query_one(FileList)
             if isinstance(name, RowKey):
-                search_bar.value = table.get_cell(name, "name")
+                search_bar.value = self.fs.get_name_by_id(int(name.value))
             else:
                 search_bar.value = name
 
     @on(SearchBar.Submitted)
     def _process_search_result(self, event: SearchBar.Submitted):
         log.debug(f"event.value: {event.value}")
-        table = self.query_one(FileList)
-        name = table.get_cell_at((table.cursor_row, 0))
+        name = self.fs.get_name_by_id(int(self.highlighted_row.value))
 
         # drive letter on windows: change drive
         if re.match(r"^[A-Za-z]\:$", event.value) and util.is_windows():
@@ -176,15 +182,19 @@ class Panel(Vertical):
         # directory: enter the directory
         elif (directory := self.directory / name).is_dir():
             self.directory = directory
+            self.selected_rows.clear()
             self.reload()
         else:
             self.show_name_in_search_bar(name)
 
     @on(FileList.Executed)
     def _change_directory(self, event: FileList.Executed):
-        target = self.directory / event.value
+        target = self.directory / self.fs.get_name_by_id(
+            int(self.highlighted_row.value)
+        )
         log.debug(f"target: {target}")
         if target.is_dir():
+            self.selected_rows.clear()
             self.directory = target
             self.reload()
 
@@ -200,16 +210,18 @@ class Panel(Vertical):
                 )
 
     def action_edit(self) -> None:
-        table = self.query_one(FileList)
-        object = self.directory / table.get_cell(self.highlighted_row, "name")
+        object = self.directory / self.fs.get_name_by_id(
+            int(self.highlighted_row.value)
+        )
         if object.is_file():
             self.execute_command(
                 f"{util.get_editor()} {object}", f"failed to call {util.get_editor()}"
             )
 
     def action_view(self) -> None:
-        table = self.query_one(FileList)
-        object = self.directory / table.get_cell(self.highlighted_row, "name")
+        object = self.directory / self.fs.get_name_by_id(
+            int(self.highlighted_row.value)
+        )
         if object.is_file():
             self.execute_command(
                 f"{util.get_viewer()} {object}", f"failed to call {util.get_viewer()}"
@@ -217,3 +229,24 @@ class Panel(Vertical):
 
     def action_reload(self) -> None:
         self.reload(use_cache=False)
+
+    def action_toggle_select(self) -> None:
+        table = self.query_one(FileList)
+        if self.highlighted_row in self.selected_rows:
+            self.selected_rows.remove(self.highlighted_row)
+            table.update_cell(
+                self.highlighted_row,
+                "name",
+                self.fs.get_name_by_id(int(self.highlighted_row.value)),
+            )
+        else:
+            self.selected_rows.append(self.highlighted_row)
+            table.update_cell(
+                self.highlighted_row,
+                "name",
+                Text(
+                    self.fs.get_name_by_id(int(self.highlighted_row.value)),
+                    style=f"default bold on {Color.parse('sienna').hex}",
+                ),
+            )
+        table.move_cursor(row=table.cursor_row + 1)

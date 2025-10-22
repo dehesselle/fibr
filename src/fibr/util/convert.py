@@ -4,9 +4,9 @@ from datetime import datetime
 def epoch_to_str(epoch: int) -> str:
     dt = datetime.fromtimestamp(epoch)
     if dt.year == datetime.now().year:
-        return dt.strftime("%d. %b %H:%M")
+        return dt.strftime("%b %d %H:%M")
     else:
-        return dt.strftime("%d. %b %Y")
+        return dt.strftime("%b %d %Y")
 
 
 def bytes_to_str(bytes: int) -> str:

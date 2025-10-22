@@ -3,12 +3,25 @@ from pathlib import Path
 import logging
 
 from peewee import Model, CharField, IntegerField, SqliteDatabase
+from sqlite3 import Cursor
 
 db = SqliteDatabase(":memory:")
 log = logging.getLogger("fs")
 
 SQL_GET_FILES_IN_DIR = " ".join(
     [_.strip() for _ in read_text("fibr.filesystem", "get_files_in_dir.sql").split()]
+)
+SQL_UPSERT_FILES_FROM_STAGING = " ".join(
+    [
+        _.strip()
+        for _ in read_text("fibr.filesystem", "upsert_files_from_staging.sql").split()
+    ]
+)
+SQL_DELETE_FILES_NOT_IN_STAGING = " ".join(
+    [
+        _.strip()
+        for _ in read_text("fibr.filesystem", "delete_files_not_in_staging.sql").split()
+    ]
 )
 
 
@@ -18,25 +31,30 @@ class Files(Model):
     f_name = CharField()
     f_size = IntegerField()
     f_type = IntegerField()
-    _row_ts = IntegerField()  # TODO: datetime?
 
     class Meta:
         database = db
         indexes = ((("d_name", "f_name"), True),)
 
 
+class FilesStaging(Files):
+    pass
+
+
 def create_files() -> None:
-    db.create_tables([Files])
+    db.create_tables([Files, FilesStaging])
 
 
-def delete_files(directory: Path) -> None:
-    query = Files.delete().where(Files.d_name == directory)
-    _ = query.execute()
-    log.debug(f"deleted {_} records")
-
-
-def insert_files(rows) -> None:
-    Files.insert_many(rows).execute()
+def update_files(rows, directory: Path) -> None:
+    FilesStaging.truncate_table()
+    FilesStaging.insert_many(rows).execute()
+    cursor: Cursor = db.execute_sql(SQL_UPSERT_FILES_FROM_STAGING)
+    log.debug(f"upserted {cursor.rowcount} records")
+    cursor = db.execute_sql(
+        SQL_DELETE_FILES_NOT_IN_STAGING,
+        (str(directory),),
+    )
+    log.debug(f"deleted {cursor.rowcount} records")
 
 
 def select_files(directory: Path) -> list:

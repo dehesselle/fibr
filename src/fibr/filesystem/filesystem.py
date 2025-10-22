@@ -1,10 +1,9 @@
 from pathlib import Path
 from enum import IntEnum, auto
 import logging
-import time
 
 from .search import Search
-from .files import Files, create_files, delete_files, insert_files, select_files
+from .files import Files, create_files, update_files, select_files
 
 log = logging.getLogger("fs")
 
@@ -37,7 +36,6 @@ class Filesystem:
 
     def _read_directory(self, directory: Path):
         log.debug(f"directory: {directory}")
-        epoch_time = int(time.time())
         is_root: bool = directory == Path(directory.anchor)
         if not is_root:
             yield {
@@ -46,7 +44,6 @@ class Filesystem:
                 Files.f_name.column_name: "..",
                 Files.f_size.column_name: directory.parent.stat().st_size,
                 Files.f_type.column_name: to_filetype(directory.parent),
-                Files._row_ts.column_name: epoch_time,
             }
         for file in directory.iterdir():
             # this excludes fifo, symlink, junction
@@ -59,7 +56,6 @@ class Filesystem:
                 Files.f_name.column_name: file.name,
                 Files.f_size.column_name: file.stat().st_size if is_file_or_dir else 0,
                 Files.f_type.column_name: to_filetype(file),
-                Files._row_ts.column_name: epoch_time,
             }
 
     def get(self, directory: Path, use_cache: bool = True):
@@ -69,8 +65,7 @@ class Filesystem:
                 # note: an empty directory will never be cached
                 return rows
 
-        delete_files(directory)
-        insert_files(self._read_directory(directory))
+        update_files(self._read_directory(directory), directory)
         return select_files(directory)
 
     def get_id(self, directory: Path, filename: str) -> int:
@@ -85,4 +80,8 @@ class Filesystem:
             return 0
 
     def get_name_by_id(self, id: int) -> str:
-        return Files.select(Files.f_name).where(Files.id == id).tuples()[0][0]
+        try:
+            return Files.select(Files.f_name).where(Files.id == id).tuples()[0][0]
+        except IndexError as e:
+            log.error(f"failed to get name for id={id}")
+            return ""

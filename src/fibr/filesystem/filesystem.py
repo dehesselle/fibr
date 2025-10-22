@@ -1,32 +1,11 @@
 from pathlib import Path
-from enum import IntEnum, auto
 import logging
 
 from .search import Search
 from .files import Files, create_files, update_files, select_files
+from .filetype import FileType
 
 log = logging.getLogger("fs")
-
-
-class FileType(IntEnum):
-    UNKNOWN = 0
-    FILE = auto()
-    DIR = auto()
-    LINK = auto()
-    FIFO = auto()
-
-
-def to_filetype(file: Path) -> FileType:
-    if file.is_file():
-        return FileType.FILE
-    elif file.is_dir():
-        return FileType.DIR
-    elif file.is_symlink:
-        return FileType.LINK
-    elif file.is_fifo:
-        return FileType.FIFO
-    else:
-        return FileType.UNKNOWN
 
 
 class Filesystem:
@@ -43,7 +22,7 @@ class Filesystem:
                 Files.f_mtime.column_name: directory.parent.stat().st_mtime,
                 Files.f_name.column_name: "..",
                 Files.f_size.column_name: directory.parent.stat().st_size,
-                Files.f_type.column_name: to_filetype(directory.parent),
+                Files.f_type.column_name: FileType.from_path(directory.parent),
             }
         for file in directory.iterdir():
             # this excludes fifo, symlink, junction
@@ -55,7 +34,7 @@ class Filesystem:
                 ),
                 Files.f_name.column_name: file.name,
                 Files.f_size.column_name: file.stat().st_size if is_file_or_dir else 0,
-                Files.f_type.column_name: to_filetype(file),
+                Files.f_type.column_name: FileType.from_path(file),
             }
 
     def get(self, directory: Path, use_cache: bool = True):

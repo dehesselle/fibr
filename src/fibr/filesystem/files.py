@@ -1,22 +1,13 @@
-from importlib.resources import read_text
-from pathlib import Path
 import logging
+from pathlib import Path
+from typing import List, Tuple
 
-from peewee import Model, CharField, IntegerField, SqliteDatabase, fn
-from sqlite3 import Cursor
+from peewee import Model, CharField, IntegerField, SqliteDatabase, fn, JOIN, Case
+
+from .filetype import FileType
 
 db = SqliteDatabase(":memory:")
 log = logging.getLogger("fs")
-
-SQL_GET_FILES_IN_DIR = " ".join(
-    [_.strip() for _ in read_text("fibr.filesystem", "get_files_in_dir.sql").split()]
-)
-SQL_UPSERT_FILES_FROM_STAGING = " ".join(
-    [
-        _.strip()
-        for _ in read_text("fibr.filesystem", "upsert_files_from_staging.sql").split()
-    ]
-)
 
 
 class Files(Model):
@@ -40,28 +31,72 @@ def create_files() -> None:
 
 
 def update_files(rows, directory: Path) -> None:
-    # read directory content into filesstaging table
+    # read directory content into FilesStaging table
     FilesStaging.truncate_table()
     FilesStaging.insert_many(rows).execute()
-    # upsert files table with records from filesstaging table
-    cursor: Cursor = db.execute_sql(SQL_UPSERT_FILES_FROM_STAGING)
-    log.debug(f"upserted {cursor.rowcount} records")
-    # delete all files for which are not in staging for given directory
-    composite_key_in_staging = FilesStaging.select().where(
-        FilesStaging.d_name == Files.d_name, FilesStaging.f_name == Files.f_name
+
+    # upsert rows: FilesStaging -> Files
+    upsert_count = (
+        Files.insert_from(
+            FilesStaging.select(
+                FilesStaging.d_name,
+                FilesStaging.f_mtime,
+                FilesStaging.f_name,
+                FilesStaging.f_size,
+                FilesStaging.f_type,
+            ).join(
+                Files,
+                JOIN.LEFT_OUTER,
+                on=(
+                    (FilesStaging.d_name == Files.d_name)
+                    & (FilesStaging.f_name == Files.f_name)
+                ),
+            ),
+            fields=[
+                Files.d_name,
+                Files.f_mtime,
+                Files.f_name,
+                Files.f_size,
+                Files.f_type,
+            ],
+        )
+        .on_conflict(
+            conflict_target=[Files.d_name, Files.f_name],
+            preserve=[
+                Files.f_mtime,
+                Files.f_size,
+                Files.f_type,
+            ],
+        )
+        .execute()
     )
+    log.debug(f"upserted {upsert_count} records")
+
+    # delete all rows in Files which are not in FilesStaging for
+    # the given directory
     delete_count = (
         Files.delete()
-        .where(~fn.EXISTS(composite_key_in_staging), Files.d_name == directory)
+        .where(
+            ~fn.EXISTS(
+                FilesStaging.select().where(
+                    FilesStaging.d_name == Files.d_name,
+                    FilesStaging.f_name == Files.f_name,
+                )
+            ),
+            Files.d_name == directory,
+        )
         .execute()
     )
     log.debug(f"deleted {delete_count} records")
 
 
-def select_files(directory: Path) -> list:
-    cursor = db.execute_sql(
-        SQL_GET_FILES_IN_DIR,
-        (str(directory),),
+def select_files(directory: Path) -> List[Tuple[int, ...]]:
+    directories_first = Case(None, [(Files.f_type == FileType.DIR, 1)], 2)
+    return (
+        Files.select(
+            Files.id, Files.f_name, Files.f_size, Files.f_mtime, directories_first
+        )
+        .where(Files.d_name == directory)
+        .order_by(directories_first, Files.f_name)
+        .tuples()
     )
-    rows = cursor.fetchall()
-    return rows

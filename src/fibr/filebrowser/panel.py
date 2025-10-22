@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 
 from rich.text import Text
-from textual.widgets.data_table import RowKey
+from textual.widgets.data_table import RowKey, RowDoesNotExist
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual import events, on
@@ -84,7 +84,7 @@ class Panel(Vertical):
         self.directory = self.directory.resolve()
         table = self.query_one(FileList)
         table.clear()
-        for row in self.fs.get(self.directory, use_cache=use_cache):
+        for row in self.fs.get_files(self.directory, use_cache=use_cache):
             table.add_row(
                 (
                     Text(row[1], style=f"default bold on {Color.parse('sienna').hex}")
@@ -98,11 +98,11 @@ class Panel(Vertical):
         self.border_title = self.directory.name
 
         if parent_name:
-            table.move_cursor(
-                row=table.get_row_index(
-                    str(self.fs.get_id(self.directory, parent_name))
-                )
-            )
+            file_id = self.fs.get_file_id(self.directory, parent_name)
+            try:
+                table.move_cursor(row=table.get_row_index(str(file_id)))
+            except RowDoesNotExist:
+                log.error(f"cannot move cursor for file_id={file_id}")
 
     def start_search(self, character: str):
         table = self.query_one(FileList)
@@ -159,14 +159,14 @@ class Panel(Vertical):
         # Only use the search bar as an info bar if it's not in use.
         if search_bar.disabled:
             if isinstance(name, RowKey):
-                search_bar.value = self.fs.get_name_by_id(int(name.value))
+                search_bar.value = self.fs.get_file_name_by_id(int(name.value))
             else:
                 search_bar.value = name
 
     @on(SearchBar.Submitted)
     def _process_search_result(self, event: SearchBar.Submitted):
         log.debug(f"event.value: {event.value}")
-        name = self.fs.get_name_by_id(int(self.highlighted_row.value))
+        name = self.fs.get_file_name_by_id(int(self.highlighted_row.value))
 
         # drive letter on windows: change drive
         if re.match(r"^[A-Za-z]\:$", event.value) and util.is_windows():
@@ -196,7 +196,7 @@ class Panel(Vertical):
 
     @on(FileList.Executed)
     def _change_directory(self, event: FileList.Executed):
-        target = self.directory / self.fs.get_name_by_id(
+        target = self.directory / self.fs.get_file_name_by_id(
             int(self.highlighted_row.value)
         )
         log.debug(f"target: {target}")
@@ -217,7 +217,7 @@ class Panel(Vertical):
                 )
 
     def action_edit(self) -> None:
-        object = self.directory / self.fs.get_name_by_id(
+        object = self.directory / self.fs.get_file_name_by_id(
             int(self.highlighted_row.value)
         )
         if object.is_file():
@@ -226,7 +226,7 @@ class Panel(Vertical):
             )
 
     def action_view(self) -> None:
-        object = self.directory / self.fs.get_name_by_id(
+        object = self.directory / self.fs.get_file_name_by_id(
             int(self.highlighted_row.value)
         )
         if object.is_file():
@@ -244,7 +244,7 @@ class Panel(Vertical):
             table.update_cell(
                 self.highlighted_row,
                 "name",
-                self.fs.get_name_by_id(int(self.highlighted_row.value)),
+                self.fs.get_file_name_by_id(int(self.highlighted_row.value)),
             )
         else:
             self.selected_rows.append(self.highlighted_row)
@@ -252,7 +252,7 @@ class Panel(Vertical):
                 self.highlighted_row,
                 "name",
                 Text(
-                    self.fs.get_name_by_id(int(self.highlighted_row.value)),
+                    self.fs.get_file_name_by_id(int(self.highlighted_row.value)),
                     style=f"default bold on {Color.parse('sienna').hex}",
                 ),
             )

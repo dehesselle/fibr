@@ -10,7 +10,7 @@ class FileType(IntEnum):
     FIFO = auto()
 
     @classmethod
-    def from_path(file: Path):
+    def from_path(cls, file: Path):
         if file.is_file():
             return FileType.FILE
         elif file.is_dir():

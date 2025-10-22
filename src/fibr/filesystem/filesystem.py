@@ -1,16 +1,17 @@
 from pathlib import Path
 import logging
 
-from .search import Search
-from .files import Files, create_files, update_files, select_files
+import peewee
+
+from . import db
 from .filetype import FileType
+from .search import Search
 
 log = logging.getLogger("fs")
 
 
 class Filesystem:
     def __init__(self):
-        create_files()
         self.search = Search()
 
     def _read_directory(self, directory: Path):
@@ -18,49 +19,49 @@ class Filesystem:
         is_root: bool = directory == Path(directory.anchor)
         if not is_root:
             yield {
-                Files.d_name.column_name: str(directory),
-                Files.f_mtime.column_name: directory.parent.stat().st_mtime,
-                Files.f_name.column_name: "..",
-                Files.f_size.column_name: directory.parent.stat().st_size,
-                Files.f_type.column_name: FileType.from_path(directory.parent),
+                db.Files.d_name.column_name: str(directory),
+                db.Files.f_mtime.column_name: directory.parent.stat().st_mtime,
+                db.Files.f_name.column_name: "..",
+                db.Files.f_size.column_name: directory.parent.stat().st_size,
+                db.Files.f_type.column_name: FileType.from_path(directory.parent),
             }
         for file in directory.iterdir():
             # this excludes fifo, symlink, junction
             is_file_or_dir: bool = file.is_file() or file.is_dir()
             yield {
-                Files.d_name.column_name: str(file.parent),
-                Files.f_mtime.column_name: (
+                db.Files.d_name.column_name: str(file.parent),
+                db.Files.f_mtime.column_name: (
                     file.stat().st_mtime if is_file_or_dir else 0
                 ),
-                Files.f_name.column_name: file.name,
-                Files.f_size.column_name: file.stat().st_size if is_file_or_dir else 0,
-                Files.f_type.column_name: FileType.from_path(file),
+                db.Files.f_name.column_name: file.name,
+                db.Files.f_size.column_name: (
+                    file.stat().st_size if is_file_or_dir else 0
+                ),
+                db.Files.f_type.column_name: FileType.from_path(file),
             }
 
-    def get(self, directory: Path, use_cache: bool = True):
+    def get_files(self, directory: Path, use_cache: bool = True):
         if use_cache:
-            rows = select_files(directory)
+            rows = db.select(directory)
             if len(rows):
                 # note: an empty directory will never be cached
                 return rows
 
-        update_files(self._read_directory(directory), directory)
-        return select_files(directory)
+        db.update(self._read_directory(directory), directory)
+        return db.select(directory)
 
-    def get_id(self, directory: Path, filename: str) -> int:
-        rows = (
-            Files.select(Files.id)
-            .where(Files.d_name == directory, Files.f_name == filename)
-            .tuples()
-        )
-        if len(rows):
-            return rows[0][0]
-        else:
+    def get_file_id(self, directory: Path, filename: str) -> int:
+        try:
+            return db.Files.get(
+                db.Files.d_name == directory, db.Files.f_name == filename
+            ).id
+        except peewee.DoesNotExist:
+            log.error(f"failed to get ID for {directory} / {filename}")
             return 0
 
-    def get_name_by_id(self, id: int) -> str:
+    def get_file_name_by_id(self, id: int) -> str:
         try:
-            return Files.select(Files.f_name).where(Files.id == id).tuples()[0][0]
-        except IndexError as e:
+            return db.Files.get(db.Files.id == id).f_name
+        except peewee.DoesNotExist:
             log.error(f"failed to get name for id={id}")
             return ""

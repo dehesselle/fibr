@@ -1,6 +1,6 @@
 import logging
 
-from .files import Files
+from .db import Files
 from peewee import fn
 
 log = logging.getLogger("fs")

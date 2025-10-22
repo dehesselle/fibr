@@ -26,11 +26,7 @@ class FilesStaging(Files):
     pass
 
 
-def create_files() -> None:
-    db.create_tables([Files, FilesStaging])
-
-
-def update_files(rows, directory: Path) -> None:
+def update(rows, directory: Path) -> None:
     # read directory content into FilesStaging table
     FilesStaging.truncate_table()
     FilesStaging.insert_many(rows).execute()
@@ -90,7 +86,7 @@ def update_files(rows, directory: Path) -> None:
     log.debug(f"deleted {delete_count} records")
 
 
-def select_files(directory: Path) -> List[Tuple[int, ...]]:
+def select(directory: Path) -> List[Tuple[int, ...]]:
     directories_first = Case(None, [(Files.f_type == FileType.DIR, 1)], 2)
     return (
         Files.select(
@@ -100,3 +96,6 @@ def select_files(directory: Path) -> List[Tuple[int, ...]]:
         .order_by(directories_first, Files.f_name)
         .tuples()
     )
+
+
+db.create_tables([Files, FilesStaging])

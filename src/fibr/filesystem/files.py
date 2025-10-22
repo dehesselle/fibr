@@ -2,7 +2,7 @@ from importlib.resources import read_text
 from pathlib import Path
 import logging
 
-from peewee import Model, CharField, IntegerField, SqliteDatabase
+from peewee import Model, CharField, IntegerField, SqliteDatabase, fn
 from sqlite3 import Cursor
 
 db = SqliteDatabase(":memory:")
@@ -15,12 +15,6 @@ SQL_UPSERT_FILES_FROM_STAGING = " ".join(
     [
         _.strip()
         for _ in read_text("fibr.filesystem", "upsert_files_from_staging.sql").split()
-    ]
-)
-SQL_DELETE_FILES_NOT_IN_STAGING = " ".join(
-    [
-        _.strip()
-        for _ in read_text("fibr.filesystem", "delete_files_not_in_staging.sql").split()
     ]
 )
 
@@ -46,15 +40,22 @@ def create_files() -> None:
 
 
 def update_files(rows, directory: Path) -> None:
+    # read directory content into filesstaging table
     FilesStaging.truncate_table()
     FilesStaging.insert_many(rows).execute()
+    # upsert files table with records from filesstaging table
     cursor: Cursor = db.execute_sql(SQL_UPSERT_FILES_FROM_STAGING)
     log.debug(f"upserted {cursor.rowcount} records")
-    cursor = db.execute_sql(
-        SQL_DELETE_FILES_NOT_IN_STAGING,
-        (str(directory),),
+    # delete all files for which are not in staging for given directory
+    composite_key_in_staging = FilesStaging.select().where(
+        FilesStaging.d_name == Files.d_name, FilesStaging.f_name == Files.f_name
     )
-    log.debug(f"deleted {cursor.rowcount} records")
+    delete_count = (
+        Files.delete()
+        .where(~fn.EXISTS(composite_key_in_staging), Files.d_name == directory)
+        .execute()
+    )
+    log.debug(f"deleted {delete_count} records")
 
 
 def select_files(directory: Path) -> list:

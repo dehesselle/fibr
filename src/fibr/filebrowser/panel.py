@@ -81,13 +81,62 @@ class Panel(Vertical):
         self.highlighted_row = RowKey()
         self.selected_rows = list()
 
+    def action_edit(self) -> None:
+        object = self.directory / self.fs.get_file_name_by_id(
+            int(self.highlighted_row.value)
+        )
+        if object.is_file():
+            self.execute_external_command([util.get_editor(), object])
+
+    def action_reload(self) -> None:
+        self.reload(use_cache=False)
+
+    def action_shell(self) -> None:
+        self.execute_external_command([util.get_shell()])
+
+    def action_toggle_select(self) -> None:
+        table = self.query_one(FileList)
+        if self.highlighted_row in self.selected_rows:
+            self.selected_rows.remove(self.highlighted_row)
+            table.update_cell(
+                self.highlighted_row,
+                "name",
+                self.fs.get_file_name_by_id(int(self.highlighted_row.value)),
+            )
+        else:
+            self.selected_rows.append(self.highlighted_row)
+            table.update_cell(
+                self.highlighted_row,
+                "name",
+                Text(
+                    self.fs.get_file_name_by_id(int(self.highlighted_row.value)),
+                    style=f"default bold on {Color.parse('sienna').hex}",
+                ),
+            )
+        table.move_cursor(row=table.cursor_row + 1)
+
+    def action_view(self) -> None:
+        object = self.directory / self.fs.get_file_name_by_id(
+            int(self.highlighted_row.value)
+        )
+        if object.is_file():
+            self.execute_external_command([util.get_viewer(), object])
+
     def compose(self) -> ComposeResult:
         yield FileList(id=self.id)
         yield InfoBar()
         yield SearchBar()
 
-    def on_mount(self) -> None:
-        self.reload()
+    def execute_external_command(self, args: List[str]) -> None:
+        with self.app.suspend():
+            cp = subprocess.run(args)
+            if cp.returncode:
+                self.app.notify(
+                    f"failed to run {args[0]}",
+                    title=f"error (rc={cp.returncode})",
+                    severity="error",
+                    timeout=5,
+                )
 
     def reload(self, use_cache: bool = True):
         if self.directory.name == "..":
@@ -118,6 +167,15 @@ class Panel(Vertical):
             except RowDoesNotExist:
                 log.error(f"cannot move cursor for file_id={file_id}")
 
+    def show_name_in_search_bar(self, name: RowKey | str):
+        search_bar = self.query_one(SearchBar)
+        # Only use the search bar as an info bar if it's not in use.
+        if search_bar.disabled:
+            if isinstance(name, RowKey):
+                search_bar.value = self.fs.get_file_name_by_id(int(name.value))
+            else:
+                search_bar.value = name
+
     def start_search(self, character: str):
         table = self.query_one(FileList)
         self.cursor_row_before_search = table.cursor_row
@@ -127,6 +185,27 @@ class Panel(Vertical):
             search_bar.disabled = False
             search_bar.value = character
             search_bar.focus()
+
+    @on(FileList.Executed)
+    def _change_directory(self, event: FileList.Executed):
+        target = self.directory / self.fs.get_file_name_by_id(
+            int(self.highlighted_row.value)
+        )
+        log.debug(f"target: {target}")
+        if target.is_dir():
+            self.selected_rows.clear()
+            self.directory = target
+            self.reload()
+
+    @on(FileList.RowHighlighted)
+    def _show_highlighted_row_in_search_bar(self, event: FileList.RowHighlighted):
+        self.highlighted_row = event.row_key
+        self.show_name_in_search_bar(self.highlighted_row)
+
+    @on(SearchBar.Cancelled)
+    def cancel_search(self):
+        table = self.query_one(FileList)
+        table.move_cursor(row=self.cursor_row_before_search)
 
     @on(SearchBar.Changed)
     def _move_cursor_to_first_match(self, event: SearchBar.Changed):
@@ -149,36 +228,6 @@ class Panel(Vertical):
         if rowid:
             table = self.query_one(FileList)
             table.move_cursor(row=table.get_row_index(str(rowid)))
-
-    @on(SearchBar.Cancelled)
-    def cancel_search(self):
-        table = self.query_one(FileList)
-        table.move_cursor(row=self.cursor_row_before_search)
-
-    def on_key(self, event: events.Key):
-        if (
-            event.character
-            and event.character.isprintable()
-            and not event.character.isspace()
-        ):
-            self.start_search(event.character)
-
-    def _get_file_by_id(self, row: RowKey) -> str:
-        return self.fs.get_file_name_by_id(int(row.value))
-
-    @on(FileList.RowHighlighted)
-    def _show_highlighted_row_in_search_bar(self, event: FileList.RowHighlighted):
-        self.highlighted_row = event.row_key
-        self.show_name_in_search_bar(self.highlighted_row)
-
-    def show_name_in_search_bar(self, name: RowKey | str):
-        search_bar = self.query_one(SearchBar)
-        # Only use the search bar as an info bar if it's not in use.
-        if search_bar.disabled:
-            if isinstance(name, RowKey):
-                search_bar.value = self.fs.get_file_name_by_id(int(name.value))
-            else:
-                search_bar.value = name
 
     @on(SearchBar.Submitted)
     def _process_search_result(self, event: SearchBar.Submitted):
@@ -230,65 +279,16 @@ class Panel(Vertical):
         else:
             self.show_name_in_search_bar(name)
 
-    @on(FileList.Executed)
-    def _change_directory(self, event: FileList.Executed):
-        target = self.directory / self.fs.get_file_name_by_id(
-            int(self.highlighted_row.value)
-        )
-        log.debug(f"target: {target}")
-        if target.is_dir():
-            self.selected_rows.clear()
-            self.directory = target
-            self.reload()
+    def on_key(self, event: events.Key):
+        if (
+            event.character
+            and event.character.isprintable()
+            and not event.character.isspace()
+        ):
+            self.start_search(event.character)
 
-    def execute_external_command(self, args: List[str]) -> None:
-        with self.app.suspend():
-            cp = subprocess.run(args)
-            if cp.returncode:
-                self.app.notify(
-                    f"failed to run {args[0]}",
-                    title=f"error (rc={cp.returncode})",
-                    severity="error",
-                    timeout=5,
-                )
+    def on_mount(self) -> None:
+        self.reload()
 
-    def action_edit(self) -> None:
-        object = self.directory / self.fs.get_file_name_by_id(
-            int(self.highlighted_row.value)
-        )
-        if object.is_file():
-            self.execute_external_command([util.get_editor(), object])
-
-    def action_view(self) -> None:
-        object = self.directory / self.fs.get_file_name_by_id(
-            int(self.highlighted_row.value)
-        )
-        if object.is_file():
-            self.execute_external_command([util.get_viewer(), object])
-
-    def action_reload(self) -> None:
-        self.reload(use_cache=False)
-
-    def action_toggle_select(self) -> None:
-        table = self.query_one(FileList)
-        if self.highlighted_row in self.selected_rows:
-            self.selected_rows.remove(self.highlighted_row)
-            table.update_cell(
-                self.highlighted_row,
-                "name",
-                self.fs.get_file_name_by_id(int(self.highlighted_row.value)),
-            )
-        else:
-            self.selected_rows.append(self.highlighted_row)
-            table.update_cell(
-                self.highlighted_row,
-                "name",
-                Text(
-                    self.fs.get_file_name_by_id(int(self.highlighted_row.value)),
-                    style=f"default bold on {Color.parse('sienna').hex}",
-                ),
-            )
-        table.move_cursor(row=table.cursor_row + 1)
-
-    def action_shell(self) -> None:
-        self.execute_external_command([util.get_shell()])
+    def _get_file_by_id(self, row: RowKey) -> str:
+        return self.fs.get_file_name_by_id(int(row.value))

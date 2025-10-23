@@ -51,10 +51,10 @@ class Panel(Vertical):
         # Binding("f7", "mkdir", "Mkdir", key_display="7"),
         # Binding("f8", "delete", "Delete", key_display="8"),
         Binding("f10", "app.quit", "Quit"),
-        Binding("ctrl+o", "shell", show=False),
-        Binding("ctrl+r", "reload", show=False),
-        Binding("ctrl+t", "toggle_select", show=False),
-        Binding("insert", "toggle_select", show=False),
+        Binding("ctrl+o", "shell", "Open shell", show=False),
+        Binding("ctrl+r", "reload", "Reload", show=False),
+        Binding("ctrl+t", "toggle_select", "Select", show=False),
+        Binding("insert", "toggle_select", "Select", show=False),
     ]
 
     def __init__(

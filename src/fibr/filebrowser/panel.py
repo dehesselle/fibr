@@ -220,7 +220,10 @@ class Panel(Vertical):
                 ),
             )
         # directory: enter the directory
-        elif (directory := self.directory / name).is_dir():
+        elif (
+            name.startswith(event.value)
+            and (directory := self.directory / name).is_dir()
+        ):
             self.directory = directory
             self.selected_rows.clear()
             self.reload()

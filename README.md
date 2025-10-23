@@ -20,7 +20,11 @@ Written in Python using the excellent [Textual](https://textual.textualize.io) f
 
 ## Installation
 
-TBD
+`fibr` is on [PyPi](https://pypi.org/project/fibr/), you can use the tool of your choice (e.g. `pip`, `uv`, etc.) to install. Or simply give it a try without installing:
+
+```bash
+uvx fibr
+```
 
 ## Usage
 

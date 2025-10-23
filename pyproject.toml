@@ -8,7 +8,12 @@ requires-python = ">=3.12"
 dependencies = ["peewee>=3.18.2", "platformdirs>=4.5.0", "textual~=6.4"]
 license = { file = "LICENSE" }
 classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
   "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Terminals",
+  "Topic :: Utilities"
 ]
 
 [project.scripts]

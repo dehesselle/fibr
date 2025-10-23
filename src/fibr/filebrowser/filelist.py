@@ -9,9 +9,9 @@ from textual.widgets import DataTable
 
 class FileList(DataTable):
     BINDINGS = [
-        Binding("enter", "execute", "Enter directory"),
-        Binding("home", "scroll_top", "Cursor top"),
-        Binding("end", "scroll_bottom", "Cursor bottom"),
+        Binding("enter", "execute", "Enter directory", show=False),
+        Binding("home", "scroll_top", "Cursor top", show=False),
+        Binding("end", "scroll_bottom", "Cursor bottom", show=False),
     ]
 
     class Executed(Message):

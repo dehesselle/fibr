@@ -28,4 +28,4 @@ TBD
 
 ## License
 
-TBD
+[GPL-2.0-or-later](LICENSE)

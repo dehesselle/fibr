@@ -1,6 +1,6 @@
 # fibr [faɪbə] - File Browser
 
-![main screen](docs/screenshot.svg)
+![main screen](https://raw.githubusercontent.com/dehesselle/fibr/refs/heads/main/docs/screenshot.svg)
 
 A simple file browser with a [Midnight Commander](https://midnight-commander.org)-style interface featuring:
 
@@ -33,4 +33,4 @@ TBD
 
 ## License
 
-[GPL-2.0-or-later](LICENSE)
+[GPL-2.0-or-later](https://github.com/dehesselle/fibr/blob/main/LICENSE)

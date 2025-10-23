@@ -4,6 +4,6 @@ AboutDialog {
 
 AboutDialog TextArea {
     width: 60;
-    height: 18;
-    border: solid;
+    height: 16;
+    border: gray;
 }

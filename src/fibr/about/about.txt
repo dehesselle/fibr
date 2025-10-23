@@ -1,0 +1,14 @@
+      ___ __ __
+    .'  _|__|  |--.----.          fibr [faɪbə]
+    |   _|  |  _  |   _|
+    |__| |__|_____|__|       dual-pane file browser
+
+
+  Similar to Midnight Commander, but with (way) less
+  features and a few "opinionated" adjustments.
+  It scratches an itch for me.
+
+  More info: https://github.com/dehesselle/fibr
+
+  (c) 2025 René de Hesselle.
+  Licensed under [GPL-2.0-or-later].

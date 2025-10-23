@@ -10,5 +10,8 @@ src/fibr/_hatch_build_hooks_vcs.py
 # Virtual environments
 .venv
 
+# IDEs
+.idea
+
 # custom
 *.log

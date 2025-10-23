@@ -1,7 +1,8 @@
 import logging
-from os import system
 from pathlib import Path
 import re
+import subprocess
+from typing import List
 
 from rich.text import Text
 from textual.widgets.data_table import RowKey, RowDoesNotExist
@@ -9,6 +10,7 @@ from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual import events, on
 from textual.binding import Binding
+from textual.message import Message
 from textual.color import Color
 
 from fibr.filesystem import Filesystem
@@ -22,6 +24,13 @@ log = logging.getLogger("panel")
 
 
 class Panel(Vertical):
+    class InternalCommandSubmitted(Message):
+        def __init__(self, panel_id, command, files: List[Path]):
+            super().__init__()
+            self.panel_id = panel_id
+            self.command = command
+            self.files = files
+
     BINDINGS = [
         Binding("f1", "app.push_screen('about_dialog')", "About"),
         Binding("f3", "view", "View"),
@@ -38,6 +47,7 @@ class Panel(Vertical):
         # Binding("f7", "mkdir", "Mkdir", key_display="7"),
         # Binding("f8", "delete", "Delete", key_display="8"),
         Binding("f10", "app.quit", "Quit"),
+        Binding("ctrl+o", "shell", show=False),
         Binding("ctrl+r", "reload", show=False),
         Binding("ctrl+t", "toggle_select", show=False),
         Binding("insert", "toggle_select", show=False),
@@ -149,6 +159,9 @@ class Panel(Vertical):
         ):
             self.start_search(event.character)
 
+    def _get_file_by_id(self, row: RowKey) -> str:
+        return self.fs.get_file_name_by_id(int(row.value))
+
     @on(FileList.RowHighlighted)
     def _show_highlighted_row_in_search_bar(self, event: FileList.RowHighlighted):
         self.highlighted_row = event.row_key
@@ -181,11 +194,27 @@ class Panel(Vertical):
                     severity="error",
                     timeout=5,
                 )
-        # command line usage: execute program
-        elif match := re.match(r"^:([^ ]+)", event.value):
-            # TODO: what about "selected rows as args"?
-            # maybe if command has no args but trailing space?
-            self.execute_command(match.group(1))
+        # colon-nonspace: execute external command
+        elif match := re.match(r"^:([^ ].+)", event.value):
+            self.execute_external_command(match.group(1).split())
+        # colon-space: execute internal command
+        elif match := re.match(r"^: ([^ ].+)", event.value):
+            self.post_message(
+                self.InternalCommandSubmitted(
+                    self.id,
+                    match.group(1),
+                    (
+                        [
+                            self.directory / self._get_file_by_id(row)
+                            for row in self.selected_rows
+                        ]
+                        if self.selected_rows
+                        else [
+                            self.directory / self._get_file_by_id(self.highlighted_row)
+                        ]
+                    ),
+                ),
+            )
         # directory: enter the directory
         elif (directory := self.directory / name).is_dir():
             self.directory = directory
@@ -205,13 +234,13 @@ class Panel(Vertical):
             self.directory = target
             self.reload()
 
-    def execute_command(self, command: str, err_message: str = "") -> None:
+    def execute_external_command(self, args: List[str]) -> None:
         with self.app.suspend():
-            rc = system(command)
-            if rc:
+            cp = subprocess.run(args)
+            if cp.returncode:
                 self.app.notify(
-                    err_message if err_message else command,
-                    title=f"error (rc={rc})",
+                    f"failed to run {args[0]}",
+                    title=f"error (rc={cp.returncode})",
                     severity="error",
                     timeout=5,
                 )
@@ -221,18 +250,14 @@ class Panel(Vertical):
             int(self.highlighted_row.value)
         )
         if object.is_file():
-            self.execute_command(
-                f"{util.get_editor()} {object}", f"failed to call {util.get_editor()}"
-            )
+            self.execute_external_command([util.get_editor(), object])
 
     def action_view(self) -> None:
         object = self.directory / self.fs.get_file_name_by_id(
             int(self.highlighted_row.value)
         )
         if object.is_file():
-            self.execute_command(
-                f"{util.get_viewer()} {object}", f"failed to call {util.get_viewer()}"
-            )
+            self.execute_external_command([util.get_viewer(), object])
 
     def action_reload(self) -> None:
         self.reload(use_cache=False)
@@ -257,3 +282,6 @@ class Panel(Vertical):
                 ),
             )
         table.move_cursor(row=table.cursor_row + 1)
+
+    def action_shell(self) -> None:
+        self.execute_external_command([util.get_shell()])

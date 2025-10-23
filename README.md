@@ -6,15 +6,16 @@ A simple file browser with a [Midnight Commander](https://midnight-commander.org
 
 - traditional dual-pane layout
 - find-as-you-type per default
-- basic file operations: copy, move, mkdir _(Not implemented yet!)_
+- basic file operations vai UI: copy, move, mkdir _(Not implemented yet!)_
 - view/edit file delegated to external tools
-- cache filesystem reads
 
 And that's about it!
 
 It's a very short and select feature set, so this might not be the tool your're looking for. If you're looking for a comprehensive TUI file manager, take a look at the original or other popular choices like [lf](https://github.com/gokcehan/lf), [superfile](https://github.com/yorukot/superfile) or [yazi](https://github.com/sxyazi/yazi).
 
 fibr was created to scratch an itch of mine and is not looking to become a contender in the space of TUI file managers.
+
+The project status is currently "alpha", i.e. it is neither feature-complete nor extensively tested.
 
 Written in Python using the excellent [Textual](https://textual.textualize.io) framework.
 

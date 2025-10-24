@@ -270,7 +270,7 @@ class Panel(Vertical):
             )
         # directory: enter the directory
         elif (
-            name.startswith(event.value)
+            name.lower().startswith(event.value.lower())
             and (directory := self.directory / name).is_dir()
         ):
             self.directory = directory

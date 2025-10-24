@@ -24,49 +24,6 @@ class SearchBar(Input):
         Binding("shift+tab", "previous"),
     ]
 
-    def __init__(
-        self,
-        value=None,
-        placeholder="",
-        highlighter=None,
-        password=False,
-        *,
-        restrict=None,
-        type="text",
-        max_length=0,
-        suggester=None,
-        validators=None,
-        validate_on=None,
-        valid_empty=False,
-        select_on_focus=False,
-        name=None,
-        id=None,
-        classes=None,
-        disabled=True,
-        tooltip=None,
-        compact=True,
-    ):
-        super().__init__(
-            value,
-            placeholder,
-            highlighter,
-            password,
-            restrict=restrict,
-            type=type,
-            max_length=max_length,
-            suggester=suggester,
-            validators=validators,
-            validate_on=validate_on,
-            valid_empty=valid_empty,
-            select_on_focus=select_on_focus,
-            name=name,
-            id=id,
-            classes=classes,
-            disabled=disabled,
-            tooltip=tooltip,
-            compact=compact,
-        )
-
     def action_cancel(self):
         self.disabled = True
         self.can_focus = False
@@ -82,3 +39,8 @@ class SearchBar(Input):
     def _disable(self):
         self.disabled = True
         self.can_focus = False
+
+    def on_mount(self):
+        self.compact = True
+        self.disabled = True
+        self.select_on_focus = False

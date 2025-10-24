@@ -5,6 +5,7 @@
 import logging
 
 from textual.events import Resize
+from textual.reactive import var
 from textual.widgets import Static
 from textual import on
 
@@ -12,29 +13,7 @@ log = logging.getLogger("panel")
 
 
 class InfoBar(Static):
-    def __init__(
-        self,
-        content="",
-        *,
-        expand=False,
-        shrink=False,
-        markup=True,
-        name=None,
-        id=None,
-        classes=None,
-        disabled=False,
-    ):
-        super().__init__(
-            content,
-            expand=expand,
-            shrink=shrink,
-            markup=markup,
-            name=name,
-            id=id,
-            classes=classes,
-            disabled=disabled,
-        )
-        self.info = str()
+    info = var(str())
 
     @on(Resize)
     def _resize_content(self):

@@ -48,7 +48,7 @@ class FileBrowser(Screen):
         target_directory = self.query_one(
             "#" + PanelID.get_other(event.panel_id), Panel
         ).directory
-        match event.command:
+        match event.command[0]:
             case "cp":
                 for file in event.files:
                     if file.is_dir():
@@ -60,11 +60,16 @@ class FileBrowser(Screen):
                             f"not copying, neither file or directory: {file.name}"
                         )
             case "mv":
-                for file in event.files:
-                    if file.is_dir() or file.is_file():
-                        shutil.move(file, target_directory / file.name)
-                    else:
-                        log.error(f"not moving, neither file or directory: {file.name}")
+                if len(event.files) == 1 and len(event.command) == 2:
+                    shutil.move(event.files[0], target_directory / event.command[1])
+                else:
+                    for file in event.files:
+                        if file.is_dir() or file.is_file():
+                            shutil.move(file, target_directory / file.name)
+                        else:
+                            log.error(
+                                f"not moving, neither file or directory: {file.name}"
+                            )
             case "rm":
                 for file in event.files:
                     if file.is_dir():

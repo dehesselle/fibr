@@ -29,7 +29,7 @@ log = logging.getLogger("panel")
 
 class Panel(Vertical):
     class InternalCommandSubmitted(Message):
-        def __init__(self, panel_id, command, files: List[Path]):
+        def __init__(self, panel_id, command: List[str], files: List[Path]):
             super().__init__()
             self.panel_id = panel_id
             self.command = command
@@ -251,22 +251,22 @@ class Panel(Vertical):
         elif match := re.match(r"^:([^ ].+)", event.value):
             self.execute_external_command(match.group(1).split())
         # colon-space: execute internal command
-        elif match := re.match(r"^: ([^ ].+)", event.value):
+        elif match := re.match(r"^: ([^ ]+)( +([^ ].*))?", event.value):
+            command = [match.group(1)]
+            # internal command can have arguments
+            if match.group(3):
+                command.extend(match.group(3).split())
+            # files is either the highlighted file or the selected files
+            files = (
+                [
+                    self.directory / self._get_file_by_id(row)
+                    for row in self.selected_rows
+                ]
+                if self.selected_rows
+                else [self.directory / self._get_file_by_id(self.highlighted_row)]
+            )
             self.post_message(
-                self.InternalCommandSubmitted(
-                    self.id,
-                    match.group(1),
-                    (
-                        [
-                            self.directory / self._get_file_by_id(row)
-                            for row in self.selected_rows
-                        ]
-                        if self.selected_rows
-                        else [
-                            self.directory / self._get_file_by_id(self.highlighted_row)
-                        ]
-                    ),
-                ),
+                self.InternalCommandSubmitted(self.id, command, files),
             )
         # directory: enter the directory
         elif (

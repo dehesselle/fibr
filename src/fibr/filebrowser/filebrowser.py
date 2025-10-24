@@ -44,7 +44,7 @@ class FileBrowser(Screen):
         yield Footer(compact=True, show_command_palette=False)
 
     @on(Panel.InternalCommandSubmitted)
-    def _execute_command(self, event: Panel.InternalCommandSubmitted):
+    def _execute_internal_command(self, event: Panel.InternalCommandSubmitted):
         target_directory = self.query_one(
             "#" + PanelID.get_other(event.panel_id), Panel
         ).directory

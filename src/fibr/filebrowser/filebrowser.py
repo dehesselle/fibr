@@ -9,6 +9,7 @@ import shutil
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal
+from textual.reactive import var
 from textual.screen import Screen
 from textual.widgets import Footer
 from textual import on
@@ -32,9 +33,7 @@ class PanelID(StrEnum):
 
 
 class FileBrowser(Screen):
-    def __init__(self, name=None, id=None, classes=None):
-        super().__init__(name, id, classes)
-        self.starting_directory = Path.cwd()
+    starting_directory = var(Path.cwd())
 
     def compose(self) -> ComposeResult:
         yield Horizontal(

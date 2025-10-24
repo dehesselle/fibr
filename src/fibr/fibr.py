@@ -21,4 +21,6 @@ class FibrApp(App):
     starting_directory = var(Path.cwd())
 
     def on_mount(self) -> None:
+        fb: FileBrowser = self.get_screen("file_browser")
+        fb.starting_directory = self.starting_directory
         self.push_screen("file_browser")

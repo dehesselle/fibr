@@ -9,6 +9,15 @@ from textual import on
 
 
 class SearchBar(Input):
+    class Cancelled(Message):
+        pass
+
+    class Next(Message):
+        pass
+
+    class Previous(Message):
+        pass
+
     BINDINGS = [
         Binding("escape", "cancel"),
         Binding("tab", "next"),
@@ -58,27 +67,18 @@ class SearchBar(Input):
             compact=compact,
         )
 
-    class Next(Message):
-        pass
-
-    class Previous(Message):
-        pass
-
-    class Cancelled(Message):
-        pass
-
     def action_cancel(self):
         self.disabled = True
         self.can_focus = False
         self.post_message(self.Cancelled())
-
-    @on(Input.Submitted)
-    def _disable(self):
-        self.disabled = True
-        self.can_focus = False
 
     def action_next(self):
         self.post_message(self.Next())
 
     def action_previous(self):
         self.post_message(self.Previous())
+
+    @on(Input.Submitted)
+    def _disable(self):
+        self.disabled = True
+        self.can_focus = False

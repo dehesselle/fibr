@@ -11,4 +11,4 @@
   More info: https://github.com/dehesselle/fibr
 
   (c) 2025 René de Hesselle.
-  Licensed under [GPL-2.0-or-later].
+  Licensed under GPL-2.0-or-later.

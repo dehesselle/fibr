@@ -129,11 +129,14 @@ class Panel(Vertical):
 
     def execute_external_command(self, args: List[str]) -> None:
         with self.app.suspend():
-            cp = subprocess.run(args)
-            if cp.returncode:
+            try:
+                cp = subprocess.run(args)
+                if cp.returncode:
+                    raise OSError()
+            except (FileNotFoundError, OSError):
                 self.app.notify(
                     f"failed to run {args[0]}",
-                    title=f"error (rc={cp.returncode})",
+                    title=f"error",
                     severity="error",
                     timeout=5,
                 )

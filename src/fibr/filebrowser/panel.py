@@ -6,7 +6,6 @@ import logging
 from pathlib import Path
 import re
 import subprocess
-from typing import List
 
 from rich.text import Text
 from textual.widgets.data_table import RowKey, RowDoesNotExist
@@ -29,7 +28,7 @@ log = logging.getLogger("panel")
 
 class Panel(Vertical):
     class InternalCommandSubmitted(Message):
-        def __init__(self, panel_id, command: List[str], files: List[Path]):
+        def __init__(self, panel_id, command: list[str], files: list[Path]):
             super().__init__()
             self.panel_id = panel_id
             self.command = command
@@ -127,7 +126,7 @@ class Panel(Vertical):
         yield InfoBar()
         yield SearchBar()
 
-    def execute_external_command(self, args: List[str]) -> None:
+    def execute_external_command(self, args: list[str]) -> None:
         with self.app.suspend():
             try:
                 cp = subprocess.run(args)

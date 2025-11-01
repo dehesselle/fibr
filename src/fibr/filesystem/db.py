@@ -4,7 +4,6 @@
 
 import logging
 from pathlib import Path
-from typing import List, Tuple
 
 from peewee import Model, CharField, IntegerField, SqliteDatabase, fn, JOIN, Case
 
@@ -90,7 +89,7 @@ def update(rows, directory: Path) -> None:
     log.debug(f"deleted {delete_count} records")
 
 
-def select(directory: Path) -> List[Tuple[int, ...]]:
+def select(directory: Path) -> list[tuple[int, ...]]:
     directories_first = Case(None, [(Files.f_type == FileType.DIR, 1)], 2)
     return (
         Files.select(

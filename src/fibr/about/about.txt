@@ -6,9 +6,7 @@
 
   Similar to Midnight Commander, but with (way) less
   features and a few "opinionated" adjustments.
-  It scratches an itch for me.
 
-  More info: https://github.com/dehesselle/fibr
 
-  (c) 2025 René de Hesselle.
+  https://github.com/dehesselle/fibr
   Licensed under GPL-2.0-or-later.

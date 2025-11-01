@@ -3,7 +3,7 @@ AboutDialog {
 }
 
 AboutDialog TextArea {
-    width: 60;
-    height: 16;
+    width: 58;
+    height: 14  ;
     border: gray;
 }

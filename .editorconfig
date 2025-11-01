@@ -12,3 +12,6 @@ indent_size = 4
 
 [*.sql]
 indent_size = 4
+
+[src/fibr/about/about.txt]
+insert_final_newline = false

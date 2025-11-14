@@ -2,7 +2,7 @@
 
 ![main screen](https://raw.githubusercontent.com/dehesselle/fibr/refs/heads/main/docs/screenshot.svg)
 
-A simple file browser with a [Midnight Commander](https://midnight-commander.org)-style interface featuring:
+A simple file browser similar to [Midnight Commander](https://midnight-commander.org) featuring:
 
 - traditional dual-pane layout
 - find-as-you-type per default
@@ -11,9 +11,9 @@ A simple file browser with a [Midnight Commander](https://midnight-commander.org
 
 And that's about it!
 
-It's a very short and select feature set, so this might not be the tool your're looking for. If you're looking for a comprehensive TUI file manager, take a look at the original or other popular choices like [lf](https://github.com/gokcehan/lf), [superfile](https://github.com/yorukot/superfile) or [yazi](https://github.com/sxyazi/yazi).
+It's a very short and select feature set, so this might not be the tool for you. If you're looking for a comprehensive TUI file manager and are not into the classic Norton Commander look & feel, some popular choices to check out are [lf](https://github.com/gokcehan/lf), [superfile](https://github.com/yorukot/superfile) or [yazi](https://github.com/sxyazi/yazi).
 
-fibr was created to scratch an itch of mine and is not looking to become a contender in the space of TUI file managers.
+fibr was created to "scratch an itch" and is not looking to become a contender in the space of TUI file managers.
 
 The project status is currently "alpha", i.e. it is neither feature-complete nor extensively tested.
 
@@ -21,7 +21,7 @@ Written in Python using the excellent [Textual](https://textual.textualize.io) f
 
 ## Installation
 
-`fibr` is on [PyPi](https://pypi.org/project/fibr/), you can use the package manager of your choice to set yourself up. Here is an example using `uv`:
+fibr is on [PyPi](https://pypi.org/project/fibr/), you can use the package manager of your choice to set yourself up. Here is an example using `uv`:
 
 ```bash
 uv tool install fibr

@@ -5,7 +5,6 @@
 import logging
 from pathlib import Path
 import re
-import subprocess
 
 from rich.text import Text
 from textual.widgets.data_table import RowKey, RowDoesNotExist
@@ -21,6 +20,7 @@ import fibr.util as util
 from .searchbar import SearchBar
 from .filelist import FileList
 from .infobar import InfoBar
+from .externalcommand import ExternalCommand
 
 
 log = logging.getLogger("panel")
@@ -81,17 +81,17 @@ class Panel(Vertical):
         self.selected_rows = list()
 
     def action_edit(self) -> None:
-        object = self.directory / self.fs.get_file_name_by_id(
+        path = self.directory / self.fs.get_file_name_by_id(
             int(self.highlighted_row.value)
         )
-        if object.is_file():
-            self.execute_external_command([util.get_editor(), object])
+        if path.is_file():
+            ExternalCommand([util.get_editor(), path]).execute()
 
     def action_reload(self) -> None:
         self.reload(use_cache=False)
 
     def action_shell(self) -> None:
-        self.execute_external_command([util.get_shell()])
+        ExternalCommand([util.get_shell()]).execute()
 
     def action_toggle_select(self) -> None:
         table = self.query_one(FileList)
@@ -115,30 +115,16 @@ class Panel(Vertical):
         table.move_cursor(row=table.cursor_row + 1)
 
     def action_view(self) -> None:
-        object = self.directory / self.fs.get_file_name_by_id(
+        path = self.directory / self.fs.get_file_name_by_id(
             int(self.highlighted_row.value)
         )
-        if object.is_file():
-            self.execute_external_command([util.get_viewer(), object])
+        if path.is_file():
+            ExternalCommand([util.get_viewer(), path]).execute()
 
     def compose(self) -> ComposeResult:
         yield FileList(id=self.id)
         yield InfoBar()
         yield SearchBar()
-
-    def execute_external_command(self, args: list[str]) -> None:
-        with self.app.suspend():
-            try:
-                cp = subprocess.run(args)
-                if cp.returncode:
-                    raise OSError()
-            except (FileNotFoundError, OSError):
-                self.app.notify(
-                    f"failed to run {args[0]}",
-                    title=f"error",
-                    severity="error",
-                    timeout=5,
-                )
 
     def reload(self, use_cache: bool = True):
         if self.directory.name == "..":
@@ -251,7 +237,7 @@ class Panel(Vertical):
                 )
         # colon-nonspace: execute external command
         elif match := re.match(r"^:([^ ].+)", event.value):
-            self.execute_external_command(match.group(1).split())
+            ExternalCommand(match.group(1).split(), self.directory).execute()
         # colon-space: execute internal command
         elif match := re.match(r"^: ([^ ]+)( +([^ ].*))?", event.value):
             command = [match.group(1)]

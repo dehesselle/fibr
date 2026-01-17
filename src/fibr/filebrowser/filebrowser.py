@@ -33,12 +33,12 @@ class PanelID(StrEnum):
 
 
 class FileBrowser(Screen):
-    starting_directory = var(Path.cwd())
+    starting_directory = var(Path.cwd())  # FIXME: unused variable atm
 
     def compose(self) -> ComposeResult:
         yield Horizontal(
-            Panel(id=PanelID.ONE, directory=self.starting_directory),
-            Panel(id=PanelID.TWO, directory=self.starting_directory),
+            Panel(id=PanelID.ONE),
+            Panel(id=PanelID.TWO),
         )
         yield Footer(compact=True, show_command_palette=False)
 

@@ -3,27 +3,47 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import logging
-from pathlib import Path
 import re
+from pathlib import Path
 
 from rich.text import Text
-from textual.widgets.data_table import RowKey, RowDoesNotExist
-from textual.app import ComposeResult
-from textual.containers import Vertical
 from textual import events, on
+from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.message import Message
 from textual.color import Color
+from textual.containers import Vertical
+from textual.message import Message
+from textual.widgets.data_table import RowDoesNotExist, RowKey
 
-from fibr.filesystem import Filesystem
+import fibr.config
 import fibr.util as util
-from .searchbar import SearchBar
+from fibr.filesystem import Filesystem
+
+from .externalcommand import ExternalCommand
 from .filelist import FileList
 from .infobar import InfoBar
-from .externalcommand import ExternalCommand
-
+from .searchbar import SearchBar
 
 log = logging.getLogger("panel")
+cfg = fibr.config.get_section("filebrowser")
+
+
+CFG_DIRECTORY = {"name": "directory", "default_value": Path(".")}
+CFG_EDITOR = {
+    "name": "editor",
+    "env_name": "EDITOR",
+    "default_value": {"darwin": "vi", "linux": "vi", "windows": "edit.exe"},
+}
+CFG_SHELL = {
+    "name": "shell",
+    "env_name": "SHELL",
+    "default_value": {"darwin": "sh", "linux": "sh", "windows": "cmd.exe"},
+}
+CFG_VIEWER = {
+    "name": "viewer",
+    "env_name": "PAGER",
+    "default_value": {"darwin": "less", "linux": "less", "windows": "moor.exe"},
+}
 
 
 class Panel(Vertical):
@@ -60,11 +80,10 @@ class Panel(Vertical):
         self,
         *children,
         name=None,
-        id=None,
+        id=None,  # TODO: turn into mandatory argument
         classes=None,
         disabled=False,
         markup=True,
-        directory: Path,
     ):
         super().__init__(
             *children,
@@ -74,7 +93,10 @@ class Panel(Vertical):
             disabled=disabled,
             markup=markup,
         )
-        self.directory = directory
+        self.cfg = fibr.config.get_section(str(self.id))
+        self.directory = self.cfg[
+            CFG_DIRECTORY
+        ]  # TODO: what if self.directory doesn't exist
         self.fs = Filesystem()
         self.cursor_row_before_search = 0
         self.highlighted_row = RowKey()
@@ -85,13 +107,13 @@ class Panel(Vertical):
             int(self.highlighted_row.value)
         )
         if path.is_file():
-            ExternalCommand([util.get_editor(), path]).execute()
+            ExternalCommand([cfg[CFG_EDITOR], path]).execute()
 
     def action_reload(self) -> None:
         self.reload(use_cache=False)
 
     def action_shell(self) -> None:
-        ExternalCommand([util.get_shell()]).execute()
+        ExternalCommand([cfg[CFG_SHELL]]).execute()
 
     def action_toggle_select(self) -> None:
         table = self.query_one(FileList)
@@ -119,7 +141,7 @@ class Panel(Vertical):
             int(self.highlighted_row.value)
         )
         if path.is_file():
-            ExternalCommand([util.get_viewer(), path]).execute()
+            ExternalCommand([cfg[CFG_VIEWER], path]).execute()
 
     def compose(self) -> ComposeResult:
         yield FileList(id=self.id)

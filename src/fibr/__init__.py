@@ -6,7 +6,6 @@ import argparse
 import logging
 from pathlib import Path
 
-import fibr.config as config
 import fibr.util as util
 from .fibr import FibrApp
 
@@ -27,11 +26,9 @@ def main() -> None:
 
     util.setup_logging("fibr.log")
     log.info("begin")
-    config.load()
 
     app = FibrApp()
     app.starting_directory = args.starting_dir
     app.run()
 
-    config.save()
     log.info("end")

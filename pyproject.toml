@@ -13,7 +13,7 @@ classifiers = [
   "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
   "Programming Language :: Python :: 3.12",
   "Topic :: Terminals",
-  "Topic :: Utilities"
+  "Topic :: Utilities",
 ]
 
 [project.scripts]
@@ -30,4 +30,4 @@ build-backend = "hatchling.build"
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "src/fibr/_hatch_build_hooks_vcs.py"
+version-file = "src/fibr/util/_version.py"

@@ -16,7 +16,7 @@ class Search:
         self.results = list()
         self.index = -1
 
-    def _search_files_like(self, directory: str, filename: str):
+    def _search_files_like(self, directory: str, filename: str) -> None:
         self.results = [
             row[0]
             for row in Files.select(
@@ -32,7 +32,7 @@ class Search:
         ]
         self.index = -1
 
-    def next(self, directory: str = None, filename: str = None) -> int:
+    def next(self, directory: str = "", filename: str = "") -> int:
         if directory:
             self._search_files_like(directory, filename)
 
@@ -40,12 +40,11 @@ class Search:
             self.index += 1
             if not self.index < len(self.results):
                 self.index = 0
-
             return self.results[self.index]
         else:
             return 0
 
-    def previous(self, directory: str = None, filename: str = None) -> int:
+    def previous(self, directory: str = "", filename: str = "") -> int:
         if directory:
             self.results = self._search_files_like(directory, filename)
             self.index = -1

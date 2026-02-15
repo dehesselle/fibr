@@ -1,8 +1,10 @@
-from textual.widget import Widget
-import subprocess
-from fibr.util.platform import is_windows, is_linux, is_macos
 import logging
+import subprocess
 from pathlib import Path
+
+from textual.widget import Widget
+
+from fibr.util.platform import is_windows
 
 log = logging.getLogger("fb")
 
@@ -14,13 +16,10 @@ class ExternalCommand(Widget):
         self.directory = directory
 
     @property
-    def prepared_args(self) -> str:
-        if is_linux():
-            args = self.args
-        elif is_macos():
-            args = self.args
-        elif is_windows():
-            if self.args[0] in ["del", "md", "mkdir", "rmdir"]:
+    def prepared_args(self) -> list:
+        args = self.args
+        if is_windows():
+            if self.args[0] in ("del", "md", "mkdir", "rmdir"):
                 args = ["cmd.exe", "/C"]
                 if self.directory:
                     args.append(f"cd /D {self.directory} && " + " ".join(self.args))

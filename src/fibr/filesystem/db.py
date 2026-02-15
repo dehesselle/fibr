@@ -5,7 +5,7 @@
 import logging
 from pathlib import Path
 
-from peewee import Model, CharField, IntegerField, SqliteDatabase, fn, JOIN, Case
+from peewee import JOIN, Case, CharField, IntegerField, Model, SqliteDatabase, fn
 
 from .filetype import FileType
 
@@ -93,7 +93,13 @@ def select(directory: Path) -> list[tuple[int, ...]]:
     directories_first = Case(None, [(Files.f_type == FileType.DIR, 1)], 2)
     return (
         Files.select(
-            Files.id, Files.f_name, Files.f_size, Files.f_mtime, directories_first
+            Files.id,  # pyright: ignore[reportAttributeAccessIssue]
+            # this is a Pylance deficiency, see related issue
+            # https://github.com/microsoft/pylance-release/issues/3701
+            Files.f_name,
+            Files.f_size,
+            Files.f_mtime,
+            directories_first,
         )
         .where(Files.d_name == directory)
         .order_by(directories_first, Files.f_name)

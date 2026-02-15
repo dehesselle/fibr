@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from pathlib import Path
 import logging
+from pathlib import Path
 
 import peewee
 
@@ -65,7 +65,12 @@ class Filesystem:
 
     def get_file_name_by_id(self, id: int) -> str:
         try:
-            return db.Files.get(db.Files.id == id).f_name
+            return db.Files.get(
+                db.Files.id  # pyright: ignore[reportAttributeAccessIssue]
+                # this is a Pylance deficiency, see related issue
+                # https://github.com/microsoft/pylance-release/issues/3701
+                == id
+            ).f_name
         except peewee.DoesNotExist:
             log.error(f"failed to get name for id={id}")
             return ""

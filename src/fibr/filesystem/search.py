@@ -4,8 +4,9 @@
 
 import logging
 
-from .db import Files
 from peewee import fn
+
+from .db import Files
 
 log = logging.getLogger("fs")
 
@@ -18,7 +19,11 @@ class Search:
     def _search_files_like(self, directory: str, filename: str):
         self.results = [
             row[0]
-            for row in Files.select(Files.id)
+            for row in Files.select(
+                Files.id  # pyright: ignore[reportAttributeAccessIssue]
+                # this is a Pylance deficiency, see related issue
+                # https://github.com/microsoft/pylance-release/issues/3701
+            )
             .where(
                 fn.LOWER(Files.f_name).startswith(filename.lower()),
                 Files.d_name == directory,

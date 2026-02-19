@@ -2,17 +2,17 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from enum import StrEnum, auto
 import logging
-from pathlib import Path
 import shutil
+from enum import StrEnum, auto
+from pathlib import Path
 
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.reactive import var
 from textual.screen import Screen
 from textual.widgets import Footer
-from textual import on
 
 from .panel import Panel
 
@@ -24,12 +24,14 @@ class PanelID(StrEnum):
     TWO = auto()
 
     @classmethod
-    def get_other(cls, id: str):
+    def get_other(cls, id: str) -> str:
         match id:
             case cls.ONE:
                 return cls.TWO
             case cls.TWO:
                 return cls.ONE
+            case _:
+                return "undefined"
 
 
 class FileBrowser(Screen):

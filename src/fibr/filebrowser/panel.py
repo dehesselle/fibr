@@ -28,24 +28,6 @@ log = logging.getLogger("panel")
 cfg = fibr.config.get_section("filebrowser")
 
 
-CFG_DIRECTORY = {"name": "directory", "default_value": Path(".")}
-CFG_EDITOR = {
-    "name": "editor",
-    "env_name": "EDITOR",
-    "default_value": {"darwin": "vi", "linux": "vi", "windows": "edit.exe"},
-}
-CFG_SHELL = {
-    "name": "shell",
-    "env_name": "SHELL",
-    "default_value": {"darwin": "sh", "linux": "sh", "windows": "cmd.exe"},
-}
-CFG_VIEWER = {
-    "name": "viewer",
-    "env_name": "PAGER",
-    "default_value": {"darwin": "less", "linux": "less", "windows": "moor.exe"},
-}
-
-
 class Panel(Vertical):
     class InternalCommandSubmitted(Message):
         def __init__(self, panel_id, command: list[str], files: list[Path]):
@@ -94,9 +76,9 @@ class Panel(Vertical):
             markup=markup,
         )
         self.cfg = fibr.config.get_section(str(self.id))
-        self.directory = self.cfg[
-            CFG_DIRECTORY
-        ]  # TODO: what if self.directory doesn't exist
+        self.directory = self.cfg.new(
+            "directory", Path(".")
+        ).as_path  # TODO: what if self.directory doesn't exist
         self.fs = Filesystem()
         self.cursor_row_before_search = 0
         self.highlighted_row = RowKey()
@@ -107,13 +89,17 @@ class Panel(Vertical):
             int(self.highlighted_row.value)
         )
         if path.is_file():
-            ExternalCommand([cfg[CFG_EDITOR], path]).execute()
+            cfg_editor = cfg.new("editor", ("vi", "vi", "edit.exe")).set_env_name(
+                "EDITOR"
+            )
+            ExternalCommand([cfg_editor.as_str, str(path)]).execute()
 
     def action_reload(self) -> None:
         self.reload(use_cache=False)
 
     def action_shell(self) -> None:
-        ExternalCommand([cfg[CFG_SHELL]]).execute()
+        cfg_shell = cfg.new("shell", ("sh", "sh", "cmd.exe")).set_env_name("SHELL")
+        ExternalCommand([cfg_shell.as_str]).execute()
 
     def action_toggle_select(self) -> None:
         table = self.query_one(FileList)
@@ -141,7 +127,10 @@ class Panel(Vertical):
             int(self.highlighted_row.value)
         )
         if path.is_file():
-            ExternalCommand([cfg[CFG_VIEWER], path]).execute()
+            cfg_viewer = cfg.new("viewer", ("less", "less", "moor.exe")).set_env_name(
+                "PAGER"
+            )
+            ExternalCommand([cfg_viewer.as_str, str(path)]).execute()
 
     def compose(self) -> ComposeResult:
         yield FileList(id=self.id)

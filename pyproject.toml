@@ -6,7 +6,6 @@ readme = "README.md"
 authors = [{ name = "René de Hesselle", email = "dehesselle@web.de" }]
 requires-python = ">=3.12"
 dependencies = [
-    "dacite>=1.9.2",
     "peewee>=3.18.2",
     "platformdirs>=4.5.0",
     "textual~=6.4",

@@ -15,8 +15,8 @@ from textual.containers import Vertical
 from textual.message import Message
 from textual.widgets.data_table import RowDoesNotExist, RowKey
 
-import fibr.config
 import fibr.util as util
+from fibr.config import config
 from fibr.filesystem import Filesystem
 
 from .externalcommand import ExternalCommand
@@ -25,7 +25,7 @@ from .infobar import InfoBar
 from .searchbar import SearchBar
 
 log = logging.getLogger("panel")
-cfg = fibr.config.get_section("filebrowser")
+cfg = config.get_section("filebrowser")
 
 
 class Panel(Vertical):
@@ -75,7 +75,7 @@ class Panel(Vertical):
             disabled=disabled,
             markup=markup,
         )
-        self.cfg = fibr.config.get_section(str(self.id))
+        self.cfg = config.get_section(str(self.id))
         self.directory = self.cfg.new(
             "directory", Path(".")
         ).as_path  # TODO: what if self.directory doesn't exist

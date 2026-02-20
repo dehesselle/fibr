@@ -5,6 +5,7 @@
 from textual.binding import Binding
 from textual.message import Message
 from textual.widgets import DataTable
+from textual.widgets.data_table import ColumnKey
 
 
 class FileList(DataTable):
@@ -27,13 +28,16 @@ class FileList(DataTable):
 
     @property
     def max_name_column_width(self) -> int:
+
         return self.size.width - (
-            self.columns["size"].width + self.columns["mtime"].width + 7
+            self.columns[ColumnKey("size")].width
+            + self.columns[ColumnKey("mtime")].width
+            + 7
         )
 
     def _on_resize(self, _):
         super()._on_resize(_)
-        self.columns["name"].width = self.max_name_column_width
+        self.columns[ColumnKey("name")].width = self.max_name_column_width
         self.refresh()
 
     def action_execute(self):

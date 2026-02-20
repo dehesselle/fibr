@@ -85,9 +85,7 @@ class Panel(Vertical):
         self.selected_rows = list()
 
     def action_edit(self) -> None:
-        path = self.directory / self.fs.get_file_name_by_id(
-            int(self.highlighted_row.value)
-        )
+        path = self.directory / self.get_file_name(self.highlighted_row)
         if path.is_file():
             cfg_editor = cfg.new("editor", ("vi", "vi", "edit.exe")).set_env_name(
                 "EDITOR"
@@ -108,7 +106,7 @@ class Panel(Vertical):
             table.update_cell(
                 self.highlighted_row,
                 "name",
-                self.fs.get_file_name_by_id(int(self.highlighted_row.value)),
+                self.get_file_name(self.highlighted_row),
             )
         else:
             self.selected_rows.append(self.highlighted_row)
@@ -116,16 +114,14 @@ class Panel(Vertical):
                 self.highlighted_row,
                 "name",
                 Text(
-                    self.fs.get_file_name_by_id(int(self.highlighted_row.value)),
+                    self.get_file_name(self.highlighted_row),
                     style=f"default bold on {Color.parse('sienna').hex}",
                 ),
             )
         table.move_cursor(row=table.cursor_row + 1)
 
     def action_view(self) -> None:
-        path = self.directory / self.fs.get_file_name_by_id(
-            int(self.highlighted_row.value)
-        )
+        path = self.directory / self.get_file_name(self.highlighted_row)
         if path.is_file():
             cfg_viewer = cfg.new("viewer", ("less", "less", "moor.exe")).set_env_name(
                 "PAGER"
@@ -149,7 +145,10 @@ class Panel(Vertical):
         for row in self.fs.get_files(self.directory, use_cache=use_cache):
             table.add_row(
                 (
-                    Text(row[1], style=f"default bold on {Color.parse('sienna').hex}")
+                    Text(
+                        str(row[1]),
+                        style=f"default bold on {Color.parse('sienna').hex}",
+                    )
                     if RowKey(str(row[0])) in self.selected_rows
                     else row[1]
                 ),
@@ -171,7 +170,7 @@ class Panel(Vertical):
         # Only use the search bar as an info bar if it's not in use.
         if search_bar.disabled:
             if isinstance(name, RowKey):
-                search_bar.value = self.fs.get_file_name_by_id(int(name.value))
+                search_bar.value = self.get_file_name(name)
             else:
                 search_bar.value = name
 
@@ -187,9 +186,7 @@ class Panel(Vertical):
 
     @on(FileList.Executed)
     def _change_directory(self, event: FileList.Executed):
-        target = self.directory / self.fs.get_file_name_by_id(
-            int(self.highlighted_row.value)
-        )
+        target = self.directory / self.get_file_name(self.highlighted_row)
         log.debug(f"target: {target}")
         if target.is_dir():
             self.selected_rows.clear()
@@ -231,7 +228,7 @@ class Panel(Vertical):
     @on(SearchBar.Submitted)
     def _process_search_result(self, event: SearchBar.Submitted):
         log.debug(f"event.value: {event.value}")
-        name = self.fs.get_file_name_by_id(int(self.highlighted_row.value))
+        name = self.get_file_name(self.highlighted_row)
 
         # drive letter on windows: change drive
         if re.match(r"^[A-Za-z]\:$", event.value) and util.is_windows():
@@ -257,12 +254,9 @@ class Panel(Vertical):
                 command.extend(match.group(3).split())
             # files is either the highlighted file or the selected files
             files = (
-                [
-                    self.directory / self._get_file_by_id(row)
-                    for row in self.selected_rows
-                ]
+                [self.directory / self.get_file_name(row) for row in self.selected_rows]
                 if self.selected_rows
-                else [self.directory / self._get_file_by_id(self.highlighted_row)]
+                else [self.directory / self.get_file_name(self.highlighted_row)]
             )
             self.post_message(
                 self.InternalCommandSubmitted(self.id, command, files),
@@ -289,5 +283,5 @@ class Panel(Vertical):
     def on_mount(self) -> None:
         self.reload()
 
-    def _get_file_by_id(self, row: RowKey) -> str:
-        return self.fs.get_file_name_by_id(int(row.value))
+    def get_file_name(self, row: RowKey) -> str:
+        return self.fs.get_file_name(int(str(row.value)))

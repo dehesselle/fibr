@@ -63,7 +63,7 @@ class Filesystem:
             log.error(f"failed to get ID for {directory} / {filename}")
             return 0
 
-    def get_file_name_by_id(self, id: int) -> str:
+    def get_file_name(self, id: int) -> str:
         try:
             return db.Files.get(
                 db.Files.id  # pyright: ignore[reportAttributeAccessIssue]

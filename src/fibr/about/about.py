@@ -7,9 +7,9 @@ from importlib.resources import read_text
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.screen import ModalScreen
-from textual.widgets import TextArea, Footer
+from textual.widgets import Footer, TextArea
 
-import fibr.util as util
+from fibr.util import VERSION
 
 # logo: pyfiglet -f cricket fibr
 ABOUT_TEXT = read_text("fibr.about", "about.txt")
@@ -25,4 +25,4 @@ class AboutDialog(ModalScreen):
     def on_mount(self):
         ta = self.query_one(TextArea)
         ta.text = ABOUT_TEXT
-        ta.border_title = "v" + util.version
+        ta.border_title = "v" + VERSION

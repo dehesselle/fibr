@@ -6,7 +6,8 @@ import argparse
 import logging
 from pathlib import Path
 
-import fibr.util as util
+from fibr.util import VERSION, setup_logging
+
 from .fibr import FibrApp
 
 log = logging.getLogger("main")
@@ -21,10 +22,10 @@ def main() -> None:
         default=".",
         nargs="?",
     )
-    parser.add_argument("--version", action="version", version=f"fibr {util.version}")
+    parser.add_argument("--version", action="version", version=f"fibr {VERSION}")
     args = parser.parse_args()
 
-    util.setup_logging("fibr.log")
+    setup_logging("fibr.log")
     log.info("begin")
 
     app = FibrApp()

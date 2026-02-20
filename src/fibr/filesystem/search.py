@@ -46,8 +46,7 @@ class Search:
 
     def previous(self, directory: str = "", filename: str = "") -> int:
         if directory:
-            self.results = self._search_files_like(directory, filename)
-            self.index = -1
+            self._search_files_like(directory, filename)
 
         if len(self.results):
             self.index -= 1
